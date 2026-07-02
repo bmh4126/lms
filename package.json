@@ -9,9 +9,15 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "clsx": "^2.1.1",
+    "heroicons": "^2.2.0",
     "next": "16.2.9",
+    "postgres": "^3.4.9",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "server-only": "^0.0.1",
+    "use-debounce": "^10.1.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -20,7 +26,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
-    "tailwindcss": "^4",
+    "tailwindcss": "^4.3.2",
     "typescript": "^5"
   }
 }
