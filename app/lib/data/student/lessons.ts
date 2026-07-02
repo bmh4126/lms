@@ -1,6 +1,6 @@
 import "server-only";
 import postgres from "postgres";
-import { Chapter, Lesson } from "../../definition";
+import { Chapter, LessonDetail } from "../../definition";
 
 // The single database connection for the whole app.
 // Only this module reads the connection string from the environment — every
@@ -67,9 +67,13 @@ export async function fetchChaptersByGrade(grade: number) {
 }
 
 export async function fetchLessonById(id: string) {
-  return sql<Lesson[]>`
-  SELECT *
+  const [lesson] = await sql<LessonDetail[]>`
+  SELECT
+    l.title AS title,
+    l.video_url AS video_url
   FROM lessons l
   WHERE l.id = ${id}
+  LIMIT 1
   `;
+  return lesson
 }

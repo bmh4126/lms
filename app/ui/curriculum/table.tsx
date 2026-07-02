@@ -1,5 +1,5 @@
 import { fetchChaptersByGrade } from "@/app/lib/data/student/lessons";
-import { Chapter, Topic, Lesson } from "@/app/lib/definition";
+import { Chapter, LessonListItem, Topic, } from "@/app/lib/definition";
 import Link from "next/link";
 
 export default async function CurriculumTable() {
@@ -44,7 +44,7 @@ function TopicList({ list }: { list: Topic[] }) {
   );
 }
 
-function LessonList({ list }: { list: Lesson[] }) {
+function LessonList({ list }: { list: LessonListItem[] }) {
   return (
     <>
       {list.map((lesson) => {

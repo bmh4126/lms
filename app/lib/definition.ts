@@ -55,10 +55,15 @@ export type Chapter = {
 export type Topic = {
   title: string;
   position: number | string;
-  lessons: Lesson[];
+  lessons: LessonListItem[];
 };
-export type Lesson = {
+export type LessonListItem = {
   id: string;
   title: string;
   position: number | string;
 };
+
+export type LessonDetail = {
+    title:string,
+    video_url: string;
+}
