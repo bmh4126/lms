@@ -64,6 +64,6 @@ export type LessonListItem = {
 };
 
 export type LessonDetail = {
-    title:string,
-    video_url: string;
-}
+  title: string;
+  video_url: string;
+};

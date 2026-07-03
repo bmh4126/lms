@@ -1,6 +1,7 @@
 import "server-only";
 import postgres from "postgres";
 import { Chapter, LessonDetail } from "../../definition";
+import { z } from "zod";
 
 // The single database connection for the whole app.
 // Only this module reads the connection string from the environment — every
@@ -67,13 +68,29 @@ export async function fetchChaptersByGrade(grade: number) {
 }
 
 export async function fetchLessonById(id: string) {
-  const [lesson] = await sql<LessonDetail[]>`
+  const validatedId = z
+    .object({
+      id: z.uuid(),
+    })
+    .safeParse({ id });
+  if (!validatedId.success) {
+    throw {
+      errors: validatedId.error.message,
+      message: "Missing field. Failed to create invoice.",
+    };
+  }
+  try {
+    const [lesson] = await sql<LessonDetail[]>`
   SELECT
     l.title AS title,
     l.video_url AS video_url
   FROM lessons l
-  WHERE l.id = ${id}
+  WHERE l.id = ${validatedId.data.id}
   LIMIT 1
   `;
-  return lesson
+    return lesson;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
 }
