@@ -8,7 +8,9 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <main>
-      <h1 className={`${lusitana.className} text-2xl`}>Practice</h1>
+      <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
+        Practice
+      </h1>
     </main>
   );
 }

@@ -1,9 +1,12 @@
 import { lusitana } from "@/app/ui/font";
+import { Metadata } from "next";
 import { Suspense } from "react";
 import CardWrapper from "@/app/ui/cards";
 import { CardsSkeleton } from "@/app/ui/skeletons";
-import Table from "@/app/ui/curriculum/table";
 
+export const metadata: Metadata = {
+  title: "Admin",
+};
 
 export default function Page() {
   return (
@@ -12,13 +15,8 @@ export default function Page() {
         Curriculum
       </h1>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <Suspense fallback={<CardsSkeleton type="student" />}>
-          <CardWrapper type="student" />
-        </Suspense>
-      </div>
-      <div>
-        <Suspense>
-          <Table />
+        <Suspense fallback={<CardsSkeleton type="admin" />}>
+          <CardWrapper type="admin" />
         </Suspense>
       </div>
     </main>

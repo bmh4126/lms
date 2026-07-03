@@ -1,4 +1,4 @@
-import { getCurriculumPreview } from "@/app/lib/data/student/lessons";
+import { getCurriculumPreview } from "@/app/lib/data/lessons";
 
 // GET /api/preview — quick sanity check that seeded data is reachable.
 export async function GET() {

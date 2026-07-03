@@ -1,7 +1,12 @@
-import { fetchLessonById } from "@/app/lib/data/student/lessons";
+import { fetchLessonById } from "@/app/lib/data/student/data";
 import { Video } from "@/app/ui/curriculum/lecture";
 import { lusitana } from "@/app/ui/font";
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Study",
+};
 
 export default async function Page(prop: { params: Promise<{ id: string }> }) {
   const param = await prop.params;
@@ -13,8 +18,11 @@ export default async function Page(prop: { params: Promise<{ id: string }> }) {
   return (
     <div className="block w-full">
       <div className="flex w-full flex-row items-center justify-between">
-        <h1 className={`${lusitana.className} text-2xl`}>{lesson.title}</h1>
-        <div>{id}</div>
+        <h1
+          className={`${lusitana.className} mb-4 text-xl md:text-2xl font-[700]`}
+        >
+          Lesson {lesson.position}: {lesson.title}
+        </h1>
       </div>
       <div className="block w-full h-full">
         <Video video_url={lesson.video_url} />

@@ -7,6 +7,9 @@ import {
   ShieldExclamationIcon,
   BookOpenIcon,
 } from "@heroicons/react/24/outline";
+import { getStudentCards } from "../ui/curriculum/cards";
+import { getTeacherCards } from "../ui/dashboard/cards";
+import { getAdminCards } from "../ui/admin/cards";
 
 export type NavLink = {
   name: string;
@@ -65,5 +68,22 @@ export type LessonListItem = {
 
 export type LessonDetail = {
   title: string;
+  position: string | number;
   video_url: string;
+};
+
+export type Role = "student" | "teacher" | "admin";
+
+export type User = {
+  id: string;
+  name: string;
+  role: Role;
+  email: string;
+  password: string;
+};
+
+export const roleCardList: Record<string,()=> Promise<Cards[]>> = {
+  student: getStudentCards,
+  teacher: getTeacherCards,
+  admin: getAdminCards,
 };

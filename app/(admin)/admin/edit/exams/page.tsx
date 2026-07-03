@@ -2,15 +2,15 @@ import { lusitana } from "@/app/ui/font";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: 'Record',
-}
+  title: "Edit exams",
+};
 
 export default function Page() {
   return (
-    <main>
+    <div className="w-full">
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
-        Record
+        Edit Exams Page
       </h1>
-    </main>
+    </div>
   );
 }

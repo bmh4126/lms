@@ -1,5 +1,5 @@
-import { fetchChaptersByGrade } from "@/app/lib/data/student/lessons";
-import { Chapter, LessonListItem, Topic, } from "@/app/lib/definition";
+import { fetchChaptersByGrade } from "@/app/lib/data/student/data";
+import { Chapter, LessonListItem, Topic } from "@/app/lib/definition";
 import Link from "next/link";
 
 export default async function CurriculumTable() {

@@ -1,7 +1,7 @@
 import { AcademicCapIcon } from "@heroicons/react/24/outline";
 import { lusitana } from "./font";
 
-export default function Logo({ role }: { role: string }) {
+export default function Logo({ userName }: { userName: string }) {
   return (
     <div className="block">
       <div
@@ -10,7 +10,9 @@ export default function Logo({ role }: { role: string }) {
         <AcademicCapIcon className="h-12 w-12 rotate-[5deg]" />
         <p className="text-[44px]">LMS</p>
       </div>
-      <p className="flex w-full text-[20px]">{role}</p>
+      <p className="flex w-full text-[20px]">
+        {userName ? `Welcome ${userName}` : ""}
+      </p>
     </div>
   );
 }

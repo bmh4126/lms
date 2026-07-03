@@ -1,9 +1,9 @@
 CREATE TABLE IF NOT EXISTS users(
     id UUID PRIMARY KEY DEFAULT GEN_RANDOM_UUID(),
     email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
+    password TEXT NOT NULL,
     name TEXT NOT NULL,
-    role TEXT NOT NULL CHECK(role IN ('student', 'teacher','admin','parent')),
+    role TEXT NOT NULL CHECK(role IN ('student', 'teacher','admin')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -27,6 +27,6 @@ CREATE TABLE IF NOT EXISTS lessons(
     title TEXT NOT NULL,
     topic_id UUID NOT NULL REFERENCES topics(id),
     position INT NOT NULL,
-    video_url TEXT,
+    video_url TEXT NOT NULL,
     UNIQUE(title, topic_id)
 );

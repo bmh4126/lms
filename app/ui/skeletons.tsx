@@ -1,5 +1,4 @@
-import { StudentCardList } from "./curriculum/cards";
-import { TeacherCardList } from "./dashboard/cards";
+import { roleCardList } from "../lib/definition";
 
 // Loading animation
 const shimmer =
@@ -22,7 +21,7 @@ export function CardSkeleton() {
 }
 
 export function CardsSkeleton({ type }: { type: string }) {
-  const amount= type === 'student' ? StudentCardList.length : TeacherCardList.length;
+  const amount= roleCardList[type].length;
   return (
     <>
       {Array.from({ length: amount }, (_, i) => (

@@ -1,8 +1,7 @@
 import { lusitana } from "./font";
 import { IconName, IconsMap } from "../lib/definition";
 import { Cards } from "../lib/definition";
-import { StudentCardList } from "@/app/ui/curriculum/cards";
-import { TeacherCardList } from "./dashboard/cards";
+import { roleCardList } from "../lib/definition";
 
 export function Card({
   title,
@@ -31,9 +30,12 @@ export function Card({
   );
 }
 
-export default function Page({ type }: { type: "student" | "teacher" }) {
-  const CardList: Cards[] =
-    type === "student" ? StudentCardList : TeacherCardList;
+export default async function Page({
+  type,
+}: {
+  type: "student" | "teacher" | "admin";
+}) {
+  const CardList = await roleCardList[type]();
   return (
     <>
       {CardList.map((card) => {

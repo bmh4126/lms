@@ -3,20 +3,35 @@ import { ReactNode } from "react";
 import { NavLink } from "@/app/lib/definition";
 import { auth } from "@/auth";
 
-const links:NavLink[] = [
+const links: NavLink[] = [
   {
-    name: "Study",
-    href: "/curriculum",
+    name: "Home",
+    href: "/admin",
     icon: "study",
   },
   {
-    name: "Practice",
-    href: "/curriculum/practice",
+    name: "Curriculum",
+    href: "/admin/edit/curriculum",
     icon: "practice",
   },
   {
-    name: "Record",
-    href: "/curriculum/record",
+    name: "Exams",
+    href: "/admin/edit/exams",
+    icon: "record",
+  },
+  {
+    name: "Resources",
+    href: "/admin/edit/resources",
+    icon: "record",
+  },
+  {
+    name: "Teachers",
+    href: "/admin/edit/teachers",
+    icon: "record",
+  },
+  {
+    name: "Students",
+    href: "/admin/edit/students",
     icon: "record",
   },
 ];

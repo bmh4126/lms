@@ -1,12 +1,12 @@
-import "server-only";
-import postgres from "postgres";
+'use server';
+
 import { Chapter, LessonDetail } from "../../definition";
 import { z } from "zod";
+import { sql } from "../../db";
 
 // The single database connection for the whole app.
 // Only this module reads the connection string from the environment — every
 // other file imports `sql` from here (Data Access Layer principle).
-const sql = postgres(process.env.POSTGRES_URL!, { ssl: "require" });
 
 export async function getCurriculumPreview() {
   return sql`
@@ -20,17 +20,6 @@ export async function getCurriculumPreview() {
     JOIN lessons l ON l.topic_id   = t.id
     ORDER BY c.grade, c.position, t.position, l.position
   `;
-}
-
-export async function fetchCardData(grade: number) {
-  const totalChapterPromise = await sql`
-    SELECT COUNT(*)
-    FROM chapters c
-    WHERE c.grade = ${grade}
-  `;
-  const data = await Promise.all([totalChapterPromise]);
-  const totalChapter = Number(data[0][0].count ?? "0");
-  return { totalChapter };
 }
 
 export async function fetchChaptersByGrade(grade: number) {
@@ -67,6 +56,18 @@ export async function fetchChaptersByGrade(grade: number) {
   `;
 }
 
+export async function fetchCardData(grade: number) {
+  const totalChapterPromise = await sql`
+    SELECT COUNT(*)
+    FROM chapters c
+    WHERE grade = ${grade}
+  `;
+  const data = await Promise.all([totalChapterPromise]);
+  const totalChapter = Number(data[0][0].count ?? "0");
+  return { totalChapter };
+}
+
+
 export async function fetchLessonById(id: string) {
   const validatedId = z
     .object({
@@ -83,7 +84,8 @@ export async function fetchLessonById(id: string) {
     const [lesson] = await sql<LessonDetail[]>`
   SELECT
     l.title AS title,
-    l.video_url AS video_url
+    l.video_url AS video_url,
+    l.position AS position
   FROM lessons l
   WHERE l.id = ${validatedId.data.id}
   LIMIT 1
