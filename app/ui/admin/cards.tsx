@@ -8,6 +8,6 @@ export async function getAdminCards(): Promise<Cards[]> {
     { title: "Total Chapters", value: totalGrades, type: "chapter" },
     { title: "Total Students", value: totalStudents, type: "test" },
     { title: "Total Teachers", value: totalTeachers, type: "test" },
-    { title: "Admin Demo ", value: 4, type: "test" },
+    { title: "Demo 4", value: 4, type: "test" },
   ];
 }

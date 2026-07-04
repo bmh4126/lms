@@ -5,8 +5,8 @@ export async function getTeacherCards(): Promise<Cards[]> {
   const { totalChapter } = await fetchCardData(1);
   return [
     { title: "Total Chapters", value: totalChapter, type: "chapter" },
-    { title: "Teacher Demo", value: 2, type: "test" },
-    { title: "Teacher Demo", value: 3, type: "test" },
-    { title: "Teacher Demo", value: 4, type: "test" },
+    { title: "Demo 2", value: 2, type: "test" },
+    { title: "Demo 3", value: 3, type: "test" },
+    { title: "Demo 4", value: 4, type: "test" },
   ];
 }

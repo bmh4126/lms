@@ -1,9 +1,8 @@
 import { lusitana } from "@/app/ui/font";
 import { Suspense } from "react";
 import CardWrapper from "@/app/ui/cards";
-import { CardsSkeleton } from "@/app/ui/skeletons";
+import { CardsSkeleton, StudentTableSkeleton } from "@/app/ui/skeletons";
 import Table from "@/app/ui/curriculum/table";
-
 
 export default function Page() {
   return (
@@ -17,7 +16,7 @@ export default function Page() {
         </Suspense>
       </div>
       <div>
-        <Suspense>
+        <Suspense fallback={<StudentTableSkeleton />}>
           <Table />
         </Suspense>
       </div>

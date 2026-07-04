@@ -21,8 +21,9 @@ export function CardSkeleton() {
   );
 }
 
-export function CardsSkeleton({ type }: { type: string }) {
-  const amount= roleCardList[type].length;
+export async function CardsSkeleton({ type }: { type: string }) {
+  // const data = await roleCardList[type];
+  const amount = 4;
   return (
     <>
       {Array.from({ length: amount }, (_, i) => (
@@ -37,5 +38,33 @@ export function VideoSkeleton() {
     <div className={`${lusitana.className} text-[44px]`}>
       <p>Loading video...</p>
     </div>
-  )
+  );
+}
+
+export function StudentTableSkeleton() {
+  return null;
+  return (
+    <div className={`${shimmer} w-full h-[60vh]`}>
+      <div className="mb-4 w-full overflow-hidden rounded-md border-b-2 border-r-2 transition-all ">
+        {/* Title box — a separate clickable header, NOT wrapping the topics */}
+        <div className="bg-gray-100 w-full h-[60px] text-left p-4 font-semibold transition-all hover:bg-blue-100 hover:text-blue-500"></div>
+      </div>
+      <div className="mb-4 w-full overflow-hidden rounded-md border-b-2 border-r-2 transition-all ">
+        {/* Title box — a separate clickable header, NOT wrapping the topics */}
+        <div className="bg-gray-100 w-full h-[60px] text-left p-4 font-semibold transition-all hover:bg-blue-100 hover:text-blue-500"></div>
+      </div>
+      <div className="mb-4 w-full overflow-hidden rounded-md border-b-2 border-r-2 transition-all ">
+        {/* Title box — a separate clickable header, NOT wrapping the topics */}
+        <div className="bg-gray-100 w-full h-[60px] text-left p-4 font-semibold transition-all hover:bg-blue-100 hover:text-blue-500"></div>
+      </div>
+      <div className="mb-4 w-full overflow-hidden rounded-md border-b-2 border-r-2 transition-all ">
+        {/* Title box — a separate clickable header, NOT wrapping the topics */}
+        <div className="bg-gray-100 w-full h-[60px] text-left p-4 font-semibold transition-all hover:bg-blue-100 hover:text-blue-500"></div>
+      </div>
+      <div className="mb-4 w-full overflow-hidden rounded-md border-b-2 border-r-2 transition-all ">
+        {/* Title box — a separate clickable header, NOT wrapping the topics */}
+        <div className="bg-gray-100 w-full h-[60px] text-left p-4 font-semibold transition-all hover:bg-blue-100 hover:text-blue-500"></div>
+      </div>
+    </div>
+  );
 }

@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 
 const links: NavLink[] = [
   {
-    name: "Home",
+    name: "Dashboard",
     href: "/dashboard",
     icon: "dashboard",
   },
