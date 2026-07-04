@@ -1,4 +1,5 @@
 import { roleCardList } from "../lib/definition";
+import { lusitana } from "./font";
 
 // Loading animation
 const shimmer =
@@ -29,4 +30,12 @@ export function CardsSkeleton({ type }: { type: string }) {
       ))}
     </>
   );
+}
+
+export function VideoSkeleton() {
+  return (
+    <div className={`${lusitana.className} text-[44px]`}>
+      <p>Loading video...</p>
+    </div>
+  )
 }

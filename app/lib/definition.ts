@@ -50,12 +50,14 @@ export type Curriculum = {
 };
 
 export type Chapter = {
+  id: string;
   title: string;
   position: string | number;
-  topics: Topic[];
+  topics: TopicListItem[];
 };
 
-export type Topic = {
+export type TopicListItem = {
+  id: string;
   title: string;
   position: number | string;
   lessons: LessonListItem[];
@@ -82,7 +84,7 @@ export type User = {
   password: string;
 };
 
-export const roleCardList: Record<string,()=> Promise<Cards[]>> = {
+export const roleCardList: Record<string, () => Promise<Cards[]>> = {
   student: getStudentCards,
   teacher: getTeacherCards,
   admin: getAdminCards,

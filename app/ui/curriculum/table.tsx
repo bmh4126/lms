@@ -1,5 +1,5 @@
 import { fetchChaptersByGrade } from "@/app/lib/data/student/data";
-import { Chapter, LessonListItem, Topic } from "@/app/lib/definition";
+import { Chapter, LessonListItem, TopicListItem } from "@/app/lib/definition";
 import Link from "next/link";
 
 export default async function CurriculumTable() {
@@ -29,19 +29,19 @@ function ChapterList({ list }: { list: Chapter[] }) {
   );
 }
 
-function TopicList({ list }: { list: Topic[] }) {
-  return (
-    <>
-      {list.map((topic) => (
-        <li key={topic.position}>
-          {topic.title}
-          <ol className="list-[lower-roman] list-inside pl-6">
-            <LessonList list={topic.lessons} />
-          </ol>
-        </li>
-      ))}
-    </>
-  );
+function TopicList({ list }: { list: TopicListItem[] }) {
+    return (
+      <>
+        {list.map((topic) => (
+          <li key={topic.position}>
+            {topic.title}
+            <ol className="list-[lower-roman] list-inside pl-6">
+              <LessonList list={topic.lessons} />
+            </ol>
+          </li>
+        ))}
+      </>
+    );
 }
 
 function LessonList({ list }: { list: LessonListItem[] }) {

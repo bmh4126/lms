@@ -3,6 +3,8 @@ import { Video } from "@/app/ui/curriculum/lecture";
 import { lusitana } from "@/app/ui/font";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
+import { Suspense } from "react";
+import { VideoSkeleton } from "@/app/ui/skeletons";
 
 export const metadata: Metadata = {
   title: "Study",
@@ -25,7 +27,9 @@ export default async function Page(prop: { params: Promise<{ id: string }> }) {
         </h1>
       </div>
       <div className="block w-full h-full">
-        <Video video_url={lesson.video_url} />
+        <Suspense fallback={<VideoSkeleton/>}>
+          <Video video_url={lesson.video_url} />
+        </Suspense>
       </div>
     </div>
   );

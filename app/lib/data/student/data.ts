@@ -1,6 +1,11 @@
-'use server';
+"use server";
 
-import { Chapter, LessonDetail } from "../../definition";
+import {
+  Chapter,
+  TopicListItem,
+  LessonDetail,
+  LessonListItem,
+} from "../../definition";
 import { z } from "zod";
 import { sql } from "../../db";
 
@@ -66,7 +71,6 @@ export async function fetchCardData(grade: number) {
   const totalChapter = Number(data[0][0].count ?? "0");
   return { totalChapter };
 }
-
 
 export async function fetchLessonById(id: string) {
   const validatedId = z
