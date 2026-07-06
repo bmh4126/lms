@@ -1,9 +1,10 @@
 "use server";
 
 import {
-  Chapter,
-  TopicListItem,
   LessonDetail,
+  ChapterListItem,
+  Grade,
+  TopicListItem,
   LessonListItem,
 } from "../../definition";
 import { z } from "zod";
@@ -13,52 +14,9 @@ import { sql } from "../../db";
 // Only this module reads the connection string from the environment — every
 // other file imports `sql` from here (Data Access Layer principle).
 
-export async function getCurriculumPreview() {
-  return sql`
-    SELECT
-      c.grade,
-      c.title AS chapter,
-      t.title AS topic,
-      l.title AS lesson
-    FROM chapters c
-    JOIN topics  t ON t.chapter_id = c.id
-    JOIN lessons l ON l.topic_id   = t.id
-    ORDER BY c.grade, c.position, t.position, l.position
-  `;
-}
-
-export async function fetchChaptersByGrade(grade: number) {
-  return sql<Chapter[]>`
-    SELECT
-      c.title    AS title,
-      c.position AS position,
-      COALESCE(
-        json_agg(
-          json_build_object(
-            'title', t.title,
-            'position', t.position,
-            'lessons', (
-              SELECT COALESCE(
-                json_agg(
-                  json_build_object('id',l.id, 'title', l.title, 'position', l.position)
-                  ORDER BY l.position
-                ),
-                '[]'
-              )
-              FROM lessons l
-              WHERE l.topic_id = t.id
-            )
-          )
-          ORDER BY t.position
-        ) FILTER (WHERE t.id IS NOT NULL),
-        '[]'
-      ) AS topics
-    FROM chapters c
-    LEFT JOIN topics t ON t.chapter_id = c.id
-    WHERE c.grade = ${grade}
-    GROUP BY c.id, c.title, c.position
-    ORDER BY c.position
-  `;
+export async function delay(duration: number) {
+  console.log("Fetching revenue data...");
+  await new Promise((resolve) => setTimeout(resolve, duration));
 }
 
 export async function fetchCardData(grade: number) {
@@ -72,6 +30,131 @@ export async function fetchCardData(grade: number) {
   return { totalChapter };
 }
 
+export async function fetchGradeByStudentId(grade: number) {
+  const data = await sql<Grade[]>`
+    SELECT *
+    FROM grades
+    WHERE position = ${grade}
+  `;
+  return data[0];
+}
+
+export async function fetchChapterCountByGrade(grade: number) {
+  const data = await sql`SELECT COUNT(*) FROM chapters WHERE grade = ${grade}`;
+  return Number(data[0].count);
+}
+
+export async function fetchChaptersByGrade(grade: number) {
+  // Read-through cache for topic_count:
+  // For any chapter in this grade whose cached count is NULL (never computed),
+  // count it from the source of truth (topics) — correctly 0 when the chapter
+  // has no topics — and persist it. `WHERE ... IS NULL` means this only writes
+  // the first time; once populated, it's a cheap no-op update.
+  await sql`
+    UPDATE chapters c
+    SET topic_count = (SELECT COUNT(*) FROM topics t WHERE t.chapter_id = c.id)
+    WHERE c.grade = ${grade} AND c.topic_count IS NULL
+  `;
+  // Now the stored value is guaranteed non-null; read it directly (no aggregate).
+  return sql<ChapterListItem[]>`
+    SELECT id, title, position, topic_count
+    FROM chapters
+    WHERE grade = ${grade}
+    ORDER BY position
+  `;
+}
+
+export async function fetchTopicCountByChapter(chapter_id: string) {
+  const validatedId = z.object({ chapter_id: z.uuid() }).safeParse({ chapter_id });
+  if (!validatedId.success) {
+    throw {
+      errors: validatedId.error.message,
+      message: "Not a valid ChapterID",
+    };
+  }
+  try {
+    const data =
+      await sql`SELECT COUNT(*) FROM topics WHERE chapter_id = ${validatedId.data.chapter_id}`;
+    return Number(data[0].count);
+  } catch (e) {
+    console.log(e);
+    throw e;
+  }
+}
+
+export async function fetchTopicsByChapter(chapter_id: string) {
+  // await delay(3000); //Remove later
+  const validatedId = z.object({ chapter_id: z.uuid() }).safeParse({ chapter_id });
+  if (!validatedId.success) {
+    throw {
+      errors: validatedId.error.message,
+      message: "Not a valid ChapterID",
+    };
+  }
+  try {
+    return sql<TopicListItem[]>`
+  SELECT
+      t.id             AS id,
+      t.title          AS title,
+      t.position       AS position,
+      COUNT(l.id)::int AS lesson_count
+    FROM topics t
+    LEFT JOIN lessons l ON l.topic_id = t.id
+    WHERE t.chapter_id = ${validatedId.data.chapter_id}
+    GROUP BY t.id, t.title, t.position
+    ORDER BY t.position
+  `;
+  } catch (e) {
+    console.log(e);
+    throw e;
+  }
+}
+
+export async function fetchLessonCountByTopic(topic_id: string) {
+  const validatedId = z.object({ topic_id: z.uuid() }).safeParse({ topic_id });
+  if (!validatedId.success) {
+    throw {
+      errors: validatedId.error.message,
+      message: "Not a valid TopicID",
+    };
+  }
+  try {
+    return sql`
+    SELECT COUNT(*)
+    FROM chapters c
+    WHERE grade = ${validatedId.data.topic_id}`;
+  } catch (e) {
+    console.log(e);
+    throw e;
+  }
+}
+
+// Lazy-load leaf: lessons for one topic. No child count — lessons have no
+// children to skeleton.
+export async function fetchLessonsByTopic(topic_id: string) {
+  const validatedId = z.object({ topic_id: z.uuid() }).safeParse({ topic_id });
+  if (!validatedId.success) {
+    throw {
+      errors: validatedId.error.message,
+      message: "Not a valid TopicID",
+    };
+  }
+  try {
+    return sql<LessonListItem[]>`
+    SELECT
+      l.id       AS id,
+      l.title    AS title,
+      l.position AS position
+    FROM lessons l
+    WHERE l.topic_id = ${validatedId.data.topic_id}
+    ORDER BY l.position
+  `;
+  } catch (e) {
+    console.log(e);
+    throw e;
+  }
+}
+
 export async function fetchLessonById(id: string) {
   const validatedId = z
     .object({
@@ -81,7 +164,7 @@ export async function fetchLessonById(id: string) {
   if (!validatedId.success) {
     throw {
       errors: validatedId.error.message,
-      message: "Missing field. Failed to create invoice.",
+      message: "Not a valid LessonID",
     };
   }
   try {
