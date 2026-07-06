@@ -6,10 +6,11 @@ import Table from "@/app/ui/curriculum/table";
 import { treeWrapper } from "@/app/ui/curriculum/shared";
 import {
   fetchChaptersByGrade,
-  fetchChapterCountByGrade,
-  fetchGradeByStudentId,
+  fetchGradeByUserId,
 } from "@/app/lib/data/student/data";
 import { Grade } from "@/app/lib/definition";
+import { auth } from "@/auth";
+import { notFound } from "next/navigation";
 
 // Async server loader: does the slow initial chapter fetch INSIDE the Suspense
 // boundary (so the skeleton streams), then hands the data to the client tree.
@@ -23,10 +24,11 @@ async function ChapterLoader({ grade }: { grade: number }) {
 }
 
 export default async function Page() {
-  const studentGrade: Grade = await fetchGradeByStudentId(1);
-  let chapterCount:number;
-  if (studentGrade.chapter_count) chapterCount = studentGrade.chapter_count;
-  else chapterCount = await fetchChapterCountByGrade(studentGrade.position);
+  const student = await auth();
+  const studentId = student?.user.id;
+  if (!studentId) notFound();
+  const studentGrade: Grade = await fetchGradeByUserId(studentId);
+  const chapterCount = studentGrade.chapter_count;
   return (
     <main>
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
@@ -34,7 +36,7 @@ export default async function Page() {
       </h1>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Suspense fallback={<CardsSkeleton type="student" />}>
-          <CardWrapper type="student" />
+          <CardWrapper type="student" userId={studentId} />
         </Suspense>
       </div>
       <div>

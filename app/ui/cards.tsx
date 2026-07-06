@@ -1,6 +1,5 @@
 import { lusitana } from "./font";
 import { IconName, IconsMap } from "../lib/definition";
-import { Cards } from "../lib/definition";
 import { roleCardList } from "../lib/definition";
 
 export function Card({
@@ -32,10 +31,12 @@ export function Card({
 
 export default async function Page({
   type,
+  userId,
 }: {
   type: "student" | "teacher" | "admin";
+  userId: string;
 }) {
-  const CardList = await roleCardList[type]();
+  const CardList = await roleCardList[type](userId);
   return (
     <>
       {CardList.map((card) => {

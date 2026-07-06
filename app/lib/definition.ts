@@ -84,7 +84,7 @@ export type User = {
   password: string;
 };
 
-export const roleCardList: Record<string, () => Promise<Cards[]>> = {
+export const roleCardList: Record<string, (userId:string) => Promise<Cards[]>> = {
   student: getStudentCards,
   teacher: getTeacherCards,
   admin: getAdminCards,

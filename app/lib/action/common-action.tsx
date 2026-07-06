@@ -23,9 +23,10 @@ export async function authenticate(
   }
 }
 
-export async function getUser(email: string): Promise<User | undefined> {
+export async function getUser(email: string) {
   try {
     const user = await sql<User[]>`SELECT * FROM users WHERE email = ${email}`;
+    console.log(user[0].id);
     return user[0];
   } catch (error) {
     console.error("Failed to fetch user:", error);

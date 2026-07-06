@@ -30,18 +30,16 @@ export async function fetchCardData(grade: number) {
   return { totalChapter };
 }
 
-export async function fetchGradeByStudentId(grade: number) {
+export async function fetchGradeByUserId(userId: string) {
   const data = await sql<Grade[]>`
-    SELECT *
-    FROM grades
-    WHERE position = ${grade}
+    SELECT
+      g.position AS position,
+      g.chapter_count AS chapter_count
+    FROM grades g
+    LEFT JOIN enrollment e ON e.grade = g.position
+    WHERE e.user_id = ${userId}
   `;
   return data[0];
-}
-
-export async function fetchChapterCountByGrade(grade: number) {
-  const data = await sql`SELECT COUNT(*) FROM chapters WHERE grade = ${grade}`;
-  return Number(data[0].count);
 }
 
 export async function fetchChaptersByGrade(grade: number) {

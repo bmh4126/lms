@@ -1,8 +1,10 @@
 import { Cards } from "@/app/lib/definition";
-import { fetchCardData } from "@/app/lib/data/student/data";
+import { fetchCardData, fetchGradeByUserId } from "@/app/lib/data/student/data";
 
-export async function getStudentCards(): Promise<Cards[]> {
-  const { totalChapter } = await fetchCardData(1);
+
+export async function getStudentCards(userId: string): Promise<Cards[]> {
+  const userGrade = await fetchGradeByUserId(userId);
+  const { totalChapter } = await fetchCardData(userGrade.position);
   return [
     { title: "Total Chapters", value: totalChapter, type: "chapter" },
     { title: "Demo 2", value: 2, type: "test" },

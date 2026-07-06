@@ -2,8 +2,12 @@ import { DefaultSession } from "next-auth";
 import { Role } from "@/app/lib/definition";
 
 declare module "next-auth" {
-  interface User { role: Role }
-  interface Session { user: { role: Role } & DefaultSession["user"] }
+  interface User {
+    role: Role;
+  }
+  interface Session {
+    user: { role: Role; } & DefaultSession["user"];
+  }
 }
 
 // NOTE: We don't augment JWT here. `JWT` is declared in @auth/core/jwt, but
