@@ -44,23 +44,23 @@ export type Cards = {
   type: IconName;
 };
 
-export type Curriculum = {
-  grade: string | number;
-  chapters: Chapter[];
+export type Grade = {
+  position: number;
+  chapter_count: number;
 };
 
-export type Chapter = {
+export type ChapterListItem = {
   id: string;
   title: string;
-  position: string | number;
-  topics: TopicListItem[];
+  position: number;
+  topic_count: number;
 };
 
 export type TopicListItem = {
   id: string;
   title: string;
-  position: number | string;
-  lessons: LessonListItem[];
+  position: number;
+  lesson_count: number;
 };
 export type LessonListItem = {
   id: string;
