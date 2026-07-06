@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 
 const links:NavLink[] = [
   {
-    name: "Study",
+    name: "Curriculum",
     href: "/curriculum",
     icon: "study",
   },
