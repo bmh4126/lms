@@ -12,6 +12,27 @@
   --font-mono: var(--font-geist-mono);
 }
 
+@theme {
+  /* Custom brand blues */
+  --color-blue-400: #2589fe;
+  --color-blue-500: #0070f3;
+  --color-blue-600: #2f6feb;
+
+  /* grid-cols-13 */
+  --grid-template-columns-13: repeat(13, minmax(0, 1fr));
+
+  /* Skeleton loading animation */
+  --animate-shimmer: shimmer 2s infinite linear;
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-200%);
+    }
+    100% {
+      transform: translateX(200%);
+    }
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
