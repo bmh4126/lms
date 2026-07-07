@@ -84,8 +84,27 @@ export type User = {
   password: string;
 };
 
-export const roleCardList: Record<string, (userId:string) => Promise<Cards[]>> = {
+export const roleCardList: Record<
+  string,
+  (userId: string) => Promise<Cards[]>
+> = {
   student: getStudentCards,
   teacher: getTeacherCards,
   admin: getAdminCards,
+};
+
+export type UserTable = {
+  id: string;
+  name: string;
+  email: string;
+  grade: string;
+  role: string;
+  created_at: string;
+};
+
+export type TeacherForm = {
+  id: string;
+  name: string;
+  email: string;
+  grade: number;
 };

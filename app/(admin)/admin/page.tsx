@@ -16,7 +16,7 @@ export default function Page() {
       </h1>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Suspense fallback={<CardsSkeleton type="admin" />}>
-          <CardWrapper type="admin" />
+          <CardWrapper type="admin" userId="" />
         </Suspense>
       </div>
     </main>

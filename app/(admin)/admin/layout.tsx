@@ -11,27 +11,27 @@ const links: NavLink[] = [
   },
   {
     name: "Curriculum",
-    href: "/admin/edit/curriculum",
+    href: "/admin/curriculum",
     icon: "practice",
   },
   {
     name: "Exams",
-    href: "/admin/edit/exams",
+    href: "/admin/exam",
     icon: "record",
   },
   {
     name: "Resources",
-    href: "/admin/edit/resources",
+    href: "/admin/resource",
     icon: "record",
   },
   {
     name: "Teachers",
-    href: "/admin/edit/teachers",
+    href: "/admin/teacher",
     icon: "record",
   },
   {
     name: "Students",
-    href: "/admin/edit/students",
+    href: "/admin/student",
     icon: "record",
   },
 ];
