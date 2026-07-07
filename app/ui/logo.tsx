@@ -5,12 +5,12 @@ export default function Logo({ userName }: { userName: string }) {
   return (
     <div className="block">
       <div
-        className={`${lusitana.className} flex flex-row items-center leading-none text-white w-full`}
+        className={`${lusitana.className} group-hover:stroke-blue-100 group-hover:text-blue-100 flex flex-row items-center leading-none text-white w-full`}
       >
         <AcademicCapIcon className="h-12 w-12 rotate-[5deg]" />
         <p className="text-[44px]">LMS</p>
       </div>
-      <p className="flex w-full text-[20px]">
+      <p className="flex w-full text-[20px] group-hover:text-blue-100">
         {userName ? `Welcome ${userName}` : ""}
       </p>
     </div>
