@@ -1,5 +1,5 @@
 // import Image from "next/image";
-import { UpdateUser, DeleteUser } from "./buttons";
+import { UpdateObj, DeleteObj } from "../buttons";
 import { formatDateToLocal } from "@/app/lib/utils";
 import { UserTable } from "@/app/lib/definition";
 
@@ -30,8 +30,8 @@ export default async function UsersTable({ users }: { users: UserTable[] }) {
                     </p>
                   </div>
                   <div className="flex justify-end gap-2">
-                    <UpdateUser id={user.id} role={user.role} />
-                    <DeleteUser id={user.id} role={user.role} />
+                    <UpdateObj id={user.id} type={user.role} />
+                    <DeleteObj id={user.id} type={user.role} />
                   </div>
                 </div>
               </div>
@@ -65,13 +65,7 @@ export default async function UsersTable({ users }: { users: UserTable[] }) {
                 >
                   <td className="py-3 pl-6 pr-3">
                     <div className="flex min-w-0 items-center gap-3">
-                      {/* <Image
-                        src={invoice.image_url}
-                        className="rounded-full"
-                        width={28}
-                        height={28}
-                        alt={`${invoice.name}'s profile picture`}
-                      /> */}
+                      {/* Image Placeholder */}
                       <p className="min-w-0 break-words">{user.name}</p>
                     </div>
                   </td>
@@ -82,8 +76,8 @@ export default async function UsersTable({ users }: { users: UserTable[] }) {
                   </td>
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex justify-end gap-3">
-                      <UpdateUser id={user.id} role={user.role} />
-                      <DeleteUser id={user.id} role={user.role} />
+                      <UpdateObj id={user.id} type={user.role} />
+                      <DeleteObj id={user.id} type={user.role} />
                     </div>
                   </td>
                 </tr>
