@@ -30,7 +30,8 @@ export async function fetchCardData() {
 }
 
 export async function fetchTeacherById(id: string) {
-  try{const data = await sql<TeacherForm[]>`
+  try {
+    const data = await sql<TeacherForm[]>`
   SELECT
     u.id AS id,
     u.name AS name,
@@ -44,12 +45,14 @@ export async function fetchTeacherById(id: string) {
     return data[0];
   } catch (e) {
     console.log("Database error", e);
-    throw new Error("Cannot fetch teacher with such ID.")
+    throw new Error("Cannot fetch teacher with such ID.");
   }
 }
 
 export async function fetchGrades() {
-  try { return await sql<{ position: number }[]>`SELECT position FROM grades`; } catch (e) {
+  try {
+    return await sql<{ position: number }[]>`SELECT position FROM grades ORDER BY position ASC`;
+  } catch (e) {
     console.log("Database error", e);
     throw new Error("Cannot fetch all grades.");
   }

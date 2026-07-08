@@ -16,5 +16,14 @@ export default function EditTeacherForm({
   const initialSate: State = { message: null, errors: {} };
   const updateTeacherWithId = updateTeacher.bind(null, teacher.id);
   const [state, formAction] = useActionState(updateTeacherWithId, initialSate);
-  return <Form formAction={formAction} action="Edit" state={state} fieldValue={teacher}/>;
+  return (
+    <Form
+      formAction={formAction}
+      action="Edit"
+      state={state}
+      fieldValue={teacher}
+      grades={grades}
+      passwordMessage="Leave blank to keep password unchanged"
+    />
+  );
 }
