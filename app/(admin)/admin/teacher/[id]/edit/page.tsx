@@ -22,7 +22,7 @@ export default async function Page(prop: { params: Promise<{ id: string }> }) {
   return (
     <main>
       <div className="grid grid-cols-[auto_1fr_auto] items-center mb-4">
-        <Back href="/admin/teachers" />
+        <Back href="/admin/teacher" />
         <h1
           className={`${lusitana.className} text-center text-xl md:text-2xl font-[700]`}
         >
