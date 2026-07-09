@@ -7,32 +7,32 @@ const links: NavLink[] = [
   {
     name: "Home",
     href: "/admin",
-    icon: "study",
+    icon: "homeIcon",
   },
   {
     name: "Curriculum",
     href: "/admin/curriculum",
-    icon: "practice",
+    icon: "bookOpenIcon",
   },
   {
     name: "Exams",
     href: "/admin/exam",
-    icon: "record",
+    icon: "numberedListIcon",
   },
   {
     name: "Resources",
     href: "/admin/resource",
-    icon: "record",
+    icon: "newspaperIcon",
   },
   {
     name: "Teachers",
     href: "/admin/teacher",
-    icon: "record",
+    icon: "userIcon",
   },
   {
     name: "Students",
     href: "/admin/student",
-    icon: "record",
+    icon: "academicCapIcon",
   },
 ];
 

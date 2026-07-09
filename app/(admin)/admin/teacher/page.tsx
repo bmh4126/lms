@@ -6,6 +6,7 @@ import Pagination from "@/app/ui/admin/paginations";
 import { fetchTeachersPages } from "@/app/lib/data/teacher/data";
 import Search from "@/app/ui/search";
 import { CreateObj } from "@/app/ui/admin/buttons";
+import UsersTableSkeleton from "@/app/ui/admin/user/table-skeleton";
 
 export const metadata: Metadata = {
   title: "Teachers",
@@ -30,12 +31,12 @@ export default async function Page(props: {
         <Search placeholder="Search for teacher..." />
         <CreateObj type="teacher" />
       </div>
-      <Suspense key={query + currentPage}>
-        <Table query={query} currentPage={currentPage} />
-      </Suspense>
       <div className="mt-5 flex w-full justify-center">
         <Pagination totalPages={totalPages} />
       </div>
+      <Suspense key={query + currentPage} fallback={<UsersTableSkeleton />}>
+        <Table query={query} currentPage={currentPage} />
+      </Suspense>
     </div>
   );
 }

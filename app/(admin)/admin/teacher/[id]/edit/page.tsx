@@ -1,4 +1,4 @@
-import { fetchTeacherById, fetchGrades } from "@/app/lib/data/admin/data";
+import { fetchUserById, fetchGrades } from "@/app/lib/data/admin/data";
 import Back from "@/app/ui/back";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -13,7 +13,7 @@ export default async function Page(prop: { params: Promise<{ id: string }> }) {
   const params = await prop.params;
   const id = params.id;
   const [teacher, grades] = await Promise.all([
-    fetchTeacherById(id),
+    fetchUserById(id),
     fetchGrades(),
   ]);
 

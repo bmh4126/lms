@@ -9,7 +9,7 @@ import {
   topicRow,
   treeList,
   treeWrapper,
-} from "./curriculum/shared";
+} from "./student/shared";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
 
 // Loading animation

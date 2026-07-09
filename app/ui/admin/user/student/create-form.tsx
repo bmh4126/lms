@@ -1,9 +1,9 @@
 "use client";
 
-import { CreateTeacher } from "@/app/lib/action/teacher/action";
-import { State } from "@/app/lib/action/common-action";
 import Form from "../common-form";
 import { useActionState } from "react";
+import { State } from "@/app/lib/action/common-action";
+import { createStudent } from "@/app/lib/action/student/action";
 
 export default function CreateTeacherForm({
   grades,
@@ -11,7 +11,7 @@ export default function CreateTeacherForm({
   grades: { position: number }[];
 }) {
   const initialSate: State = { message: "", errors: {} };
-  const [state, formAction] = useActionState(CreateTeacher, initialSate);
+  const [state, formAction] = useActionState(createStudent, initialSate);
 
   return (
     <Form
@@ -20,7 +20,7 @@ export default function CreateTeacherForm({
       action="Create"
       grades={grades}
       passwordMessage="Default password: password123"
-      role="teacher"
+      role="student"
     />
   );
 }

@@ -3,28 +3,32 @@ import { UpdateObj, DeleteObj } from "../buttons";
 import { formatDateToLocal } from "@/app/lib/utils";
 import { UserTable } from "@/app/lib/definition";
 
-export default async function UsersTable({ users }: { users: UserTable[] }) {
+export default async function UsersTable({
+  users,
+}: {
+  users: UserTable[];
+}) {
   return (
     <div className="mt-6 flow-root">
       <div className="inline-block min-w-full align-middle">
         <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
           <div className="md:hidden">
-            {users?.map((user) => (
+            {users?.map((user, index) => (
               <div
                 key={user.id}
-                className="mb-2 w-full rounded-md bg-white p-4"
+                className={`mb-2 w-full rounded-md bg-white p-4 border-r-2 border-b-2 ${
+                  index > 0 && user.grade !== users[index - 1].grade
+                    ? "mt-10"
+                    : ""
+                }`}
               >
-                <div className="flex items-center justify-between border-b pb-4">
-                  <div>
-                    <div className="mb-2 flex items-center text-xl font-medium">
-                      <p>{user.name}</p>
-                    </div>
-                    <p>{user.email}</p>
-                  </div>
+                <div className="flex w-full items-center justify-between gap-2 border-b pb-4 text-xl font-medium">
+                  <p className="min-w-0 break-words">{user.name}</p>
+                  <p className="whitespace-nowrap">Grade {user.grade}</p>
                 </div>
                 <div className="flex w-full items-center justify-between pt-4">
                   <div>
-                    <p>Grade {user.grade}</p>
+                    <p>{user.email}</p>
                     <p className="text-sm text-gray-500">
                       {formatDateToLocal(user.created_at)}
                     </p>
@@ -58,10 +62,14 @@ export default async function UsersTable({ users }: { users: UserTable[] }) {
               </tr>
             </thead>
             <tbody className="bg-white">
-              {users?.map((user) => (
+              {users?.map((user, index) => (
                 <tr
                   key={user.id}
-                  className="w-full border-b py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg"
+                  className={`w-full border-b py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg ${
+                    index > 0 && user.grade !== users[index - 1].grade
+                      ? "border-t-4 border-t-black"
+                      : ""
+                  }`}
                 >
                   <td className="py-3 pl-6 pr-3">
                     <div className="flex min-w-0 items-center gap-3">
@@ -70,11 +78,11 @@ export default async function UsersTable({ users }: { users: UserTable[] }) {
                     </div>
                   </td>
                   <td className="break-words px-3 py-3">{user.email}</td>
-                  <td className="whitespace-nowrap px-3 py-3">{user.grade}</td>
-                  <td className="whitespace-nowrap px-3 py-3">
+                  <td className="break-words px-3 py-3">{user.grade}</td>
+                  <td className="break-words px-3 py-3">
                     {formatDateToLocal(user.created_at)}
                   </td>
-                  <td className="whitespace-nowrap py-3 pl-6 pr-3">
+                  <td className="break-words py-3 pl-6 pr-3">
                     <div className="flex justify-end gap-3">
                       <UpdateObj id={user.id} type={user.role} />
                       <DeleteObj id={user.id} type={user.role} />
@@ -82,6 +90,21 @@ export default async function UsersTable({ users }: { users: UserTable[] }) {
                   </td>
                 </tr>
               ))}
+              {/* Empty filler rows keep the table height constant on short pages.
+                  &nbsp; gives each row a single text line's height. */}
+              {/* {Array.from({ length: fillerCount }).map((_, i) => (
+                <tr
+                  key={`filler-${i}`}
+                  aria-hidden="true"
+                  className="w-full border-b text-sm last-of-type:border-none [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg"
+                >
+                  <td className="py-3 pl-6 pr-3">&nbsp;</td>
+                  <td className="px-3 py-3"></td>
+                  <td className="px-3 py-3"></td>
+                  <td className="px-3 py-3"></td>
+                  <td className="py-3 pl-6 pr-3"></td>
+                </tr>
+              ))} */}
             </tbody>
           </table>
         </div>

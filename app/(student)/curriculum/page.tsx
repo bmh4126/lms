@@ -2,8 +2,8 @@ import { lusitana } from "@/app/ui/font";
 import { Suspense } from "react";
 import CardWrapper from "@/app/ui/cards";
 import { CardsSkeleton, StudentTableSkeleton } from "@/app/ui/skeletons";
-import Table from "@/app/ui/curriculum/table";
-import { treeWrapper } from "@/app/ui/curriculum/shared";
+import Table from "@/app/ui/student/curriculum/table";
+import { treeWrapper } from "@/app/ui/student/shared";
 import {
   fetchChaptersByGrade,
   fetchGradeByUserId,

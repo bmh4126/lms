@@ -1,7 +1,7 @@
 "use server";
 
 import { sql } from "../../db";
-import { Grade, TeacherForm } from "../../definition";
+import { UserForm } from "../../definition";
 
 export async function fetchCardData() {
   const totalGradesPromise = await sql`
@@ -29,9 +29,9 @@ export async function fetchCardData() {
   return { totalGrades, totalStudents, totalTeachers };
 }
 
-export async function fetchTeacherById(id: string) {
+export async function fetchUserById(id: string) {
   try {
-    const data = await sql<TeacherForm[]>`
+    const data = await sql<UserForm[]>`
   SELECT
     u.id AS id,
     u.name AS name,
@@ -45,7 +45,7 @@ export async function fetchTeacherById(id: string) {
     return data[0];
   } catch (e) {
     console.log("Database error", e);
-    throw new Error("Cannot fetch teacher with such ID.");
+    throw new Error("Cannot fetch user with such ID.");
   }
 }
 

@@ -6,9 +6,13 @@ import {
   NewspaperIcon,
   ShieldExclamationIcon,
   BookOpenIcon,
+  AcademicCapIcon,
+  UserIcon,
+  CheckCircleIcon,
+  DocumentDuplicateIcon
 } from "@heroicons/react/24/outline";
-import { getStudentCards } from "../ui/curriculum/cards";
-import { getTeacherCards } from "../ui/dashboard/cards";
+import { getStudentCards } from "../ui/student/curriculum/cards";
+import { getTeacherCards } from "../ui/teacher/dashboard/cards";
 import { getAdminCards } from "../ui/admin/cards";
 
 export type NavLink = {
@@ -18,24 +22,30 @@ export type NavLink = {
 };
 
 export type IconName =
-  | "study"
-  | "practice"
-  | "record"
-  | "dashboard"
-  | "report"
-  | "analysis"
-  | "test"
-  | "chapter";
+  'pencilIcon' |
+  'numberedListIcon' |
+  'chartBarIcon' |
+  'homeIcon' |
+  'newspaperIcon' |
+  'shieldExclaimationIcon' |
+  'bookOpenIcon' |
+  'academicCapIcon' |
+  'userIcon' |
+  'checkCircleIcon' |
+  'documentDuplicateIcon';
 
 export const IconsMap = {
-  study: PencilIcon,
-  practice: NumberedListIcon,
-  record: ChartBarIcon,
-  dashboard: HomeIcon,
-  report: NewspaperIcon,
-  analysis: ChartBarIcon,
-  test: ShieldExclamationIcon,
-  chapter: BookOpenIcon,
+  pencilIcon: PencilIcon,
+  numberedListIcon: NumberedListIcon,
+  chartBarIcon: ChartBarIcon,
+  homeIcon: HomeIcon,
+  newspaperIcon: NewspaperIcon,
+  shieldExclaimationIcon: ShieldExclamationIcon,
+  bookOpenIcon: BookOpenIcon,
+  academicCapIcon: AcademicCapIcon,
+  userIcon: UserIcon,
+  checkCircleIcon: CheckCircleIcon,
+  documentDuplicateIcon: DocumentDuplicateIcon,
 };
 
 export type Cards = {
@@ -102,7 +112,7 @@ export type UserTable = {
   created_at: string;
 };
 
-export type TeacherForm = {
+export type UserForm = {
   id: string;
   name: string;
   email: string;

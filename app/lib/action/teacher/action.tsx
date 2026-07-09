@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { randomUUID } from "crypto";
 import b from "bcrypt";
+import { State } from "../common-action";
 
 const formSchema = z.object({
   userId: z.uuid(),
@@ -16,24 +17,12 @@ const formSchema = z.object({
   created_at: z.string(),
 });
 
-const UpdateTeacher = formSchema.omit({
+const UpdateSchema = formSchema.omit({
   userId: true,
   password: true,
   created_at: true,
 });
 const CreateSchema = formSchema.omit({ userId: true, created_at: true });
-
-export type State = {
-  errors?: {
-    userId?: { errors: string[] };
-    name?: { errors: string[] };
-    email?: { errors: string[] };
-    password?: { errors: string[] };
-    grade?: { errors: string[] };
-    created_at?: { errors: string[] };
-  };
-  message?: string | null;
-};
 
 export async function CreateTeacher(
   prevState: State,
@@ -92,7 +81,7 @@ export async function updateTeacher(
   prevState: State,
   formData: FormData,
 ): Promise<State> {
-  const validatedFields = UpdateTeacher.safeParse({
+  const validatedFields = UpdateSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),

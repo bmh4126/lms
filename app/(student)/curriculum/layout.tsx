@@ -7,17 +7,17 @@ const links:NavLink[] = [
   {
     name: "Curriculum",
     href: "/curriculum",
-    icon: "study",
+    icon: "bookOpenIcon",
   },
   {
     name: "Practice",
     href: "/curriculum/practice",
-    icon: "practice",
+    icon: "pencilIcon",
   },
   {
     name: "Record",
     href: "/curriculum/record",
-    icon: "record",
+    icon: "chartBarIcon",
   },
 ];
 

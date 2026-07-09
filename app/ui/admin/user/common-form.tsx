@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "../../../button";
-import { TeacherForm } from "@/app/lib/definition";
+import { Button } from "../../button";
+import { UserForm } from "@/app/lib/definition";
 import {
   CurrencyDollarIcon,
   UserCircleIcon,
 } from "@heroicons/react/24/outline";
-import { State } from "@/app/lib/action/teacher/action";
+import { State } from "@/app/lib/action/common-action";
 import ErrorMessageBox from "@/app/ui/error-message";
 
 export default function Form({
@@ -17,16 +17,18 @@ export default function Form({
   action,
   grades,
   passwordMessage,
+  role,
 }: {
   formAction: (payload: FormData) => void;
-  fieldValue?: TeacherForm;
+  fieldValue?: UserForm;
   state: State;
   action: string;
   grades: { position: number }[];
-  passwordMessage: string;
+    passwordMessage: string;
+    role: string;
 }) {
   const fields = fieldValue ? fieldValue : { name: "", email: "", grade: "" };
-  const defaultPassword = action === 'Edit' ? "" : "password123";
+  const defaultPassword = action === "Edit" ? "" : "password123";
   return (
     <form action={formAction}>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
@@ -93,9 +95,7 @@ export default function Form({
             className="mb-2 text-sm font-medium grid grid-cols-[auto_1fr_auto] items-center"
           >
             Enter new the password
-            <p className="text-xs text-red-500 ml-1">
-              ({passwordMessage})
-            </p>
+            <p className="text-xs text-red-500 ml-1">({passwordMessage})</p>
           </label>
           <div className="relative mt-2 rounded-md">
             <div className="relative">
@@ -156,7 +156,7 @@ export default function Form({
       </div>
       <div className="mt-6 flex justify-end gap-4">
         <Link
-          href="/admin/teacher"
+          href={`/admin/${role}`}
           className="flex h-10 items-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
         >
           Cancel

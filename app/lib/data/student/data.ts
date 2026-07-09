@@ -6,6 +6,7 @@ import {
   Grade,
   TopicListItem,
   LessonListItem,
+  UserTable,
 } from "../../definition";
 import { z } from "zod";
 import { sql } from "../../db";
@@ -63,7 +64,9 @@ export async function fetchChaptersByGrade(grade: number) {
 }
 
 export async function fetchTopicCountByChapter(chapter_id: string) {
-  const validatedId = z.object({ chapter_id: z.uuid() }).safeParse({ chapter_id });
+  const validatedId = z
+    .object({ chapter_id: z.uuid() })
+    .safeParse({ chapter_id });
   if (!validatedId.success) {
     throw {
       errors: validatedId.error.message,
@@ -82,7 +85,9 @@ export async function fetchTopicCountByChapter(chapter_id: string) {
 
 export async function fetchTopicsByChapter(chapter_id: string) {
   // await delay(3000); //Remove later
-  const validatedId = z.object({ chapter_id: z.uuid() }).safeParse({ chapter_id });
+  const validatedId = z
+    .object({ chapter_id: z.uuid() })
+    .safeParse({ chapter_id });
   if (!validatedId.success) {
     throw {
       errors: validatedId.error.message,
@@ -179,5 +184,54 @@ export async function fetchLessonById(id: string) {
   } catch (error) {
     console.log(error);
     throw error;
+  }
+}
+
+const ITEMS_PER_PAGE = 6;
+
+export async function fetchStudentsPages(query: string) {
+  try {
+    const data = await sql`
+    SELECT COUNT(*)
+    FROM users u
+    JOIN enrollment e ON u.id = e.user_id
+    WHERE
+      u.role = 'student' AND
+      (u.name ILIKE ${`%${query}%`} OR
+      u.email ILIKE ${`%${query}%`} OR
+      e.grade::text ILIKE ${`%${query}%`})
+    `;
+    const totalPages = Math.ceil(Number(data[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot fetch total student pages.");
+  }
+}
+
+export async function fetchFilteredStudent(query: string, currentPage: number) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  try {
+    return await sql<UserTable[]>`
+    SELECT
+      u.id,
+      u.name,
+      u.email,
+      e.grade,
+      u.role,
+      u.created_at
+    FROM users u
+    JOIN enrollment e ON u.id = e.user_id
+    WHERE
+      u.role = 'student' AND
+      (u.name ILIKE ${`%${query}%`} OR
+      u.email ILIKE ${`%${query}%`} OR
+      e.grade::text ILIKE ${`%${query}%`})
+      ORDER BY e.grade ASC, u.name ASC
+      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
+    `;
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot fetch filterd students.");
   }
 }

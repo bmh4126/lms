@@ -16,7 +16,7 @@ import {
   topicList,
   topicRow,
   treeList,
-} from "./shared";
+} from "../shared";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 import {
   fetchLessonsByTopic,
