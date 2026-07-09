@@ -1,5 +1,5 @@
 import { fetchLessonById } from "@/app/lib/data/student/data";
-import { Video } from "@/app/ui/curriculum/lecture";
+import { Video } from "@/app/ui/student/curriculum/lecture";
 import { lusitana } from "@/app/ui/font";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";

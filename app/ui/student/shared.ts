@@ -13,7 +13,7 @@ export const treeList = "flex flex-col gap-3 w-full";
 // The chapter box (<li>): border + rounding + clipping. No background/hover here
 // so the skeleton and the real row can layer their own colors on top.
 export const chapterRow =
-  "w-full overflow-hidden rounded-md border-b-2 border-r-2 transition-all";
+  "w-full overflow-hidden rounded-md shadow-md/30 hover:shadow-blue-900 transition-all";
 
 // The chapter header: only the sizing-relevant classes (padding + weight) live
 // here. Background/hover styling is added per-use.
@@ -24,7 +24,7 @@ export const chapterHead = "w-full text-left p-4 font-semibold";
 export const topicList = "flex flex-col gap-2 p-3";
 // The topic box (<li>): same border/clip pattern as a chapter, no background.
 export const topicRow =
-  "overflow-hidden rounded-md border-b-2 border-r-2 transition-all";
+  "overflow-hidden rounded-md shadow-md/30 hover:shadow-blue-900 transition-all";
 // The topic header: padding only (smaller than a chapter's).
 export const topicHead = "w-full text-left p-3";
 
@@ -32,4 +32,4 @@ export const topicHead = "w-full text-left p-3";
 // The <ul> that stacks lesson rows, with its indent (pl-4) + gap.
 export const lessonList = "flex flex-col gap-1 p-2 pl-4";
 // A lesson row: a single padded, bordered block (the real one is a <Link>).
-export const lessonRow = "border-r-2 border-b-2 rounded-md block p-2";
+export const lessonRow = "shadow-md/30 hover:shadow-blue-900 rounded-md block p-2";

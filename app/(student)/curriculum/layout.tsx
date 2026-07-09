@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import { NavLink } from "@/app/lib/definition";
 import { auth } from "@/auth";
 
-const links:NavLink[] = [
+const links: NavLink[] = [
   {
     name: "Curriculum",
     href: "/curriculum",
@@ -13,6 +13,16 @@ const links:NavLink[] = [
     name: "Practice",
     href: "/curriculum/practice",
     icon: "pencilIcon",
+    options: [
+      {
+        name: "Assignments",
+        href: "/curriculum/practice/assignment",
+      },
+      {
+        name: "Exams",
+        href: "/curriculum/practice/exam",
+      },
+    ],
   },
   {
     name: "Record",
@@ -24,12 +34,12 @@ const links:NavLink[] = [
 export default async function Layout({ children }: { children: ReactNode }) {
   const session = await auth();
   const userName: string = session?.user?.name as string;
-    return (
-      <div className="flex h-screen flex-col md:flex-row md:overflow-hidden">
-        <div className="w-full flex-none md:w-64">
-          <SideNav links={links} userName={userName} />
-        </div>
-        <div className="grow p-6 md:overflow-y-auto md:p-12">{children}</div>
+  return (
+    <div className="flex h-screen flex-col md:flex-row md:overflow-hidden">
+      <div className="w-full flex-none md:w-64">
+        <SideNav links={links} userName={userName} />
       </div>
-    );
+      <div className="grow p-6 md:overflow-y-auto md:p-12">{children}</div>
+    </div>
+  );
 }

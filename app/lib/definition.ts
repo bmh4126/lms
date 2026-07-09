@@ -19,6 +19,7 @@ export type NavLink = {
   name: string;
   href: string;
   icon: IconName;
+  options?: { name: string, href: string }[];
 };
 
 export type IconName =

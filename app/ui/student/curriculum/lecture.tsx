@@ -1,4 +1,4 @@
-import { lusitana } from "../font";
+import { lusitana } from "../../font";
 
 export function Video({ video_url }: { video_url: string }) {
     if (!video_url)
