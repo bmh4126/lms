@@ -1,14 +1,64 @@
-import { Cards } from "@/app/lib/definition";
-import { fetchGradeByUserId, fetchAssignmentCardData } from "@/app/lib/data/student/data";
+import { Cards, IconName } from "@/app/lib/definition";
+import { Card } from "@/app/ui/cards";
 
-
-export async function getAssignmentCards(userId: string): Promise<Cards[]> {
-  const userGrade = await fetchGradeByUserId(userId);
-  const { totalAssignment,totalInProgress, totalDued,avgScore } = await fetchAssignmentCardData(userGrade.position,userId);
+export async function getAssignmentCards({
+  totalAssignment,
+  totalInProgress,
+  totalDued,
+  avgScore,
+}: {
+  totalAssignment: number;
+  totalInProgress: number;
+  totalDued: number;
+  avgScore: number;
+}): Promise<Cards[]> {
   return [
-    { title: "Total Assignments", value: totalAssignment, type: "bookOpenIcon" },
+    {
+      title: "Total Assignments",
+      value: totalAssignment,
+      type: "bookOpenIcon",
+    },
     { title: "In Progress", value: totalInProgress, type: "bookOpenIcon" },
     { title: "Dued", value: totalDued, type: "bookOpenIcon" },
-    { title: "Average Score", value: avgScore, type: "chartBarIcon" },
+    {
+      title: "Average Score",
+      value: avgScore.toString + "/10",
+      type: "chartBarIcon",
+    },
   ];
+}
+
+export default async function Page({
+  totalAssignment,
+  totalInProgress,
+  totalDued,
+  avgScore,
+}: {
+  totalAssignment: number;
+  totalInProgress: number;
+  totalDued: number;
+  avgScore: string;
+}) {
+  const CardList = [
+    {
+      title: "Total Assignments",
+      value: totalAssignment,
+      type: "bookOpenIcon",
+    },
+    { title: "In Progress", value: totalInProgress, type: "bookOpenIcon" },
+    { title: "Dued", value: totalDued, type: "bookOpenIcon" },
+    {
+      title: "Average Score",
+      value: avgScore + "/10",
+      type: "chartBarIcon",
+    },
+  ];
+  return (
+    <>
+      {CardList.map((card) => {
+        const { title, value, type } = card;
+        return <Card key={title} title={title} value={value} type={type as IconName} />;
+      })}
+    </>
+  );
 }

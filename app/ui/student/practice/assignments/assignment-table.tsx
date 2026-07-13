@@ -20,7 +20,6 @@ export default function AssignmentTable({
           {/* Mobile: cards */}
           <div className="md:hidden">
             {assignments.map((a) => {
-              const status = deriveAssignmentStatus(a.deadline, a.score);
               return (
                 <div key={a.id} className="mb-2 w-full rounded-md bg-white p-4">
                   <div className="flex w-full items-center justify-between gap-2 border-b pb-4">
@@ -33,10 +32,10 @@ export default function AssignmentTable({
                       <p>{formatDuration(a.duration)}</p>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <StatusCell status={status} score={a.score} />
+                      <StatusCell status={a.status} score={a.score} />
                       <PracticeActionButton
                         action={
-                          status === "In Progress" ? "continue" : "review"
+                          a.status === "In Progress" ? "continue" : "review"
                         }
                         id={a.id}
                       />
@@ -70,7 +69,6 @@ export default function AssignmentTable({
             </thead>
             <tbody className="bg-white">
               {assignments.map((a) => {
-                const status = deriveAssignmentStatus(a.deadline, a.score);
                 return (
                   <tr
                     key={a.id}
@@ -82,7 +80,7 @@ export default function AssignmentTable({
                       </p>
                     </td>
                     <td className="px-3 py-3">
-                      <StatusCell status={status} score={a.score} />
+                      <StatusCell status={a.status} score={a.score} />
                     </td>
                     <td className="break-words px-3 py-3">
                       {formatDuration(a.duration)}
@@ -93,7 +91,7 @@ export default function AssignmentTable({
                     <td className="px-3 py-3 text-center">
                       <PracticeActionButton
                         action={
-                          status === "In Progress" ? "continue" : "review"
+                          a.status === "In Progress" ? "continue" : "review"
                         }
                         id={a.id}
                       />

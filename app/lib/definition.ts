@@ -103,7 +103,6 @@ export const typeCardList: Record<
   student: getStudentCards,
   teacher: getTeacherCards,
   admin: getAdminCards,
-  assignment: getAssignmentCards,
 };
 
 export type UserTable = {
@@ -137,6 +136,7 @@ export type AssignmentRow = {
   name: string;
   duration: string;
   deadline: Date;
+  status: string;
   score?: string;
 }
 

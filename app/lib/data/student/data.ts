@@ -11,7 +11,6 @@ import {
 } from "../../definition";
 import { z } from "zod";
 import { sql } from "../../db";
-import { deriveAssignmentStatus } from "../../utils";
 
 // The single database connection for the whole app.
 // Only this module reads the connection string from the environment — every
@@ -31,42 +30,6 @@ export async function fetchHomeCardData(grade: number) {
   const data = await Promise.all([totalChapterPromise]);
   const totalChapter = Number(data[0][0].count ?? "0");
   return { totalChapter };
-}
-
-export async function fetchAssignmentCardData(grade: number, id:string) {
-  const totalAssignmentPromise = await sql`
-  SELECT COUNT(*)
-  FROM exercises e
-  WHERE grade = ${grade}
-  `;
-  const DeadlinePromise = await sql`
-  SELECT deadline, score
-  FROM exercises e
-  LEFT JOIN submissions s ON 
-    e.id = s.exercise_id AND
-    s.user_id = ${id}
-  WHERE grade = ${grade}
-  `;
-  const data = await Promise.all([totalAssignmentPromise, DeadlinePromise]);
-  const totalAssignment = Number(data[0][0].count ?? "0");
-  const totalInProgress = Number(
-    data[1]
-      .map((d) => d.deadline > Date.now() && !d.score)
-      .filter((d) => d === true).length,
-  );
-  const totalDued = Number(
-    data[1]
-      .map((d) => d.deadline < Date.now() && !d.score)
-      .filter((d) => d === true).length,
-  );
-  const avgScore = Number(
-    data[1]
-      .filter((d) => d.score !== null)
-      .map((d) => (d.score ? Number(d.score) : 0))
-      .reduce((acc, score) => acc + score, 0) /
-      data[1].filter((d) => d.score !== null).length
-  ).toFixed(2).toString() + '/10';
-  return { totalAssignment, totalInProgress, totalDued,avgScore };
 }
 
 export async function fetchGradeByUserId(userId: string) {
@@ -279,20 +242,45 @@ export async function fetchAssignmentRowsByGrade(
   userId: string,
 ) {
   try {
-    const data = await sql<AssignmentRow[]>`
+    type AssignmentQueryRow = Omit<AssignmentRow, "status">;
+    const data = await sql<AssignmentQueryRow[]>`
       SELECT
         e.id AS id,
         e.name AS name,
         e.duration AS duration,
         e.deadline AS deadline,
         s.score AS score
-      FROM exercises e
-      LEFT JOIN submissions s ON e.id = s.exercise_id AND s.user_id = ${userId}
-      WHERE e.grade = ${grade} AND
-      e.kind = 'assignment'
-      ORDER BY e.deadline DESC
-    `;
-    return data;
+        FROM exercises e
+        LEFT JOIN submissions s ON e.id = s.exercise_id AND s.user_id = ${userId}
+        WHERE e.grade = ${grade} AND
+        e.kind = 'assignment'
+        ORDER BY e.deadline DESC
+        `;
+    const passedDeadline = (d: Date) => d.getTime() < Date.now();
+    const tableData: AssignmentRow[] = data.map((d) => {
+      if (passedDeadline(d.deadline) && !d.score) return { ...d, status: "Dued" };
+      if (!passedDeadline(d.deadline) && !d.score) return { ...d, status: "In Progress" };
+      return { ...d, status: "Done" };
+    });
+    const totalAssignment = Number(data.length ?? "0");
+    const totalInProgress = Number(
+      data
+        .map((d) => !passedDeadline(d.deadline) && !d.score)
+        .filter((d) => d === true).length,
+    );
+    const totalDued = Number(
+      data
+        .map((d) => passedDeadline(d.deadline) && !d.score)
+        .filter((d) => d === true).length,
+    );
+    const avgScore = Number(
+      data
+        .filter((d) => d.score !== null)
+        .map((d) => (d.score ? Number(d.score) : 0))
+        .reduce((acc, score) => acc + score, 0) /
+        data.filter((d) => d.score !== null).length,
+    ).toFixed(2);
+    return { tableData, totalAssignment, totalInProgress, totalDued, avgScore };
   } catch (e) {
     console.log("Database error: ", e);
     throw new Error("Cannot fetch assignments");

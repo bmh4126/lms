@@ -1,6 +1,6 @@
 import { lusitana } from "@/app/ui/font";
 import { Metadata } from "next";
-import CardWrapper from "@/app/ui/cards";
+import CardWrapper from "@/app/ui/student/practice/assignments/cards";
 import AssignmentTable from "@/app/ui/student/practice/assignments/assignment-table";
 import {
   fetchAssignmentRowsByGrade,
@@ -22,10 +22,8 @@ export default async function Page() {
   const userId = user?.user.id;
   if (!userId) notFound();
   const userGrade = await fetchGradeByUserId(userId);
-  const tableData = await fetchAssignmentRowsByGrade(
-    userGrade.position,
-    userId,
-  );
+  const { tableData, totalAssignment, totalInProgress, totalDued, avgScore } =
+    await fetchAssignmentRowsByGrade(userGrade.position, userId);
   return (
     <main>
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
@@ -35,7 +33,12 @@ export default async function Page() {
       {/* Part 1: stats cards */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Suspense fallback={<CardsSkeleton type="assignment" />}>
-          <CardWrapper type="assignment" userId={userId} />
+          <CardWrapper
+            totalAssignment={totalAssignment}
+            totalInProgress={totalInProgress}
+            totalDued={totalDued}
+            avgScore={avgScore}
+          />
         </Suspense>
       </div>
 
