@@ -1,6 +1,5 @@
 import { lusitana } from "./font";
 import { IconName, IconsMap } from "../lib/definition";
-import { typeCardList } from "../lib/definition";
 
 export function Card({
   title,
@@ -26,23 +25,5 @@ export function Card({
         {value}
       </p>
     </div>
-  );
-}
-
-export default async function Page({
-  type,
-  userId,
-}: {
-  type: string;
-  userId: string;
-}) {
-  const CardList = await typeCardList[type](userId);
-  return (
-    <>
-      {CardList.map((card) => {
-        const { title, value, type } = card;
-        return <Card key={title} title={title} value={value} type={type} />;
-      })}
-    </>
   );
 }

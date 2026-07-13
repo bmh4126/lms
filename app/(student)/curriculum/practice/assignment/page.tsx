@@ -1,16 +1,11 @@
 import { lusitana } from "@/app/ui/font";
 import { Metadata } from "next";
-import CardWrapper from "@/app/ui/student/practice/assignments/cards";
+import AssignmentCards from "@/app/ui/student/practice/assignments/cards";
 import AssignmentTable from "@/app/ui/student/practice/assignments/assignment-table";
-import {
-  fetchAssignmentRowsByGrade,
-  fetchGradeByUserId,
-} from "@/app/lib/data/student/data";
+import { fetchAssignmentRowsByGrade } from "@/app/lib/data/student/data";
 import { auth } from "@/auth";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
-import { CardsSkeleton } from "@/app/ui/skeletons";
-import { getUser } from "@/app/lib/action/common-action";
+import Pagination from "@/app/ui/admin/paginations";
 
 export const metadata: Metadata = {
   title: "Assignment",
@@ -30,21 +25,20 @@ export default async function Page() {
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
         Assignments
       </h1>
-
       {/* Part 1: stats cards */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <Suspense fallback={<CardsSkeleton type="assignment" />}>
-          <CardWrapper
-            totalAssignment={totalAssignment}
-            totalInProgress={totalInProgress}
-            totalDued={totalDued}
-            avgScore={avgScore}
-          />
-        </Suspense>
+        <AssignmentCards
+          totalAssignment={totalAssignment}
+          totalInProgress={totalInProgress}
+          totalDued={totalDued}
+          avgScore={avgScore}
+        />
       </div>
-
+      <div className="mt-5 flex w-full justify-center">
+        <Pagination totalPages={1} />
+      </div>
       {/* Part 2: assignments/exams to do */}
-      <AssignmentTable assignments={tableData} />
+      <AssignmentTable assignments={tableData} /> {/*Change later*/}
     </main>
   );
 }

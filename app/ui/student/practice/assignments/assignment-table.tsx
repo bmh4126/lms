@@ -4,7 +4,7 @@ import { StatusCell } from "../table-component";
 import { AssignmentRow } from "@/app/lib/definition";
 import {
   deriveAssignmentStatus,
-  formatDateToLocal,
+  formatDateToTime,
   formatDuration,
 } from "@/app/lib/utils";
 
@@ -30,6 +30,7 @@ export default function AssignmentTable({
                   <div className="flex w-full items-center justify-between pt-4">
                     <div className="text-sm text-gray-500">
                       <p>{formatDuration(a.duration)}</p>
+                      <p>Due: {formatDateToTime(a.deadline)}</p>
                     </div>
                     <div className="flex flex-col items-end gap-2">
                       <StatusCell status={a.status} score={a.score} />
@@ -59,8 +60,8 @@ export default function AssignmentTable({
                 <th scope="col" className="w-10 px-3 py-5 font-medium">
                   Duration
                 </th>
-                <th scope="col" className="w-28 px-3 py-5 font-medium">
-                  Deadline
+                <th scope="col" className="w-1/8 px-3 py-5 font-medium">
+                  Due
                 </th>
                 <th scope="col" className="w-28 px-3 py-5 font-medium">
                   <span className="sr-only">Action</span>
@@ -86,7 +87,7 @@ export default function AssignmentTable({
                       {formatDuration(a.duration)}
                     </td>
                     <td className="whitespace-nowrap px-3 py-3">
-                      {formatDateToLocal(a.deadline)}
+                      {formatDateToTime(a.deadline)}
                     </td>
                     <td className="px-3 py-3 text-center">
                       <PracticeActionButton

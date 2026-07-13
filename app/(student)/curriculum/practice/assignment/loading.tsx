@@ -12,7 +12,7 @@ export default function Loading() {
         Assignments
       </h1>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <CardsSkeleton type="student" />
+        <CardsSkeleton amount={4} />
       </div>
       <StudentTableSkeleton amount={4} /> {/* Change later*/}
     </main>

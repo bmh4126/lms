@@ -1,14 +1,13 @@
 import { lusitana } from "@/app/ui/font";
 import { Suspense } from "react";
-import CardWrapper from "@/app/ui/cards";
+import CardWrapper from "@/app/ui/student/curriculum/cards";
 import { CardsSkeleton, StudentTableSkeleton } from "@/app/ui/skeletons";
 import Table from "@/app/ui/student/curriculum/table";
 import { treeWrapper } from "@/app/ui/student/shared";
 import {
   fetchChaptersByGrade,
-  fetchGradeByUserId,
+  fetchChapterCountsByGrade,
 } from "@/app/lib/data/student/data";
-import { Grade } from "@/app/lib/definition";
 import { auth } from "@/auth";
 import { notFound } from "next/navigation";
 
@@ -25,23 +24,21 @@ async function ChapterLoader({ grade }: { grade: number }) {
 
 export default async function Page() {
   const student = await auth();
-  const studentId = student?.user.id;
-  if (!studentId) notFound();
-  const studentGrade: Grade = await fetchGradeByUserId(studentId);
-  const chapterCount = studentGrade.chapter_count;
+  if (!student) notFound();
+  // const studentId = student.user.id || "";
+  const studentGrade = student.user.grade || 0;
+  const chapterCount = await fetchChapterCountsByGrade(studentGrade);
   return (
     <main>
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
         Curriculum
       </h1>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <Suspense fallback={<CardsSkeleton type="student" />}>
-          <CardWrapper type="student" userId={studentId} />
-        </Suspense>
+        <CardWrapper />
       </div>
       <div>
         <Suspense fallback={<StudentTableSkeleton amount={chapterCount} />}>
-          <ChapterLoader grade={studentGrade.position} />
+          <ChapterLoader grade={studentGrade} />
         </Suspense>
       </div>
     </main>

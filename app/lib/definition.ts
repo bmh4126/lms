@@ -11,10 +11,6 @@ import {
   CheckCircleIcon,
   DocumentDuplicateIcon,
 } from "@heroicons/react/24/outline";
-import { getStudentCards } from "../ui/student/curriculum/cards";
-import { getTeacherCards } from "../ui/teacher/dashboard/cards";
-import { getAdminCards } from "../ui/admin/cards";
-import { getAssignmentCards } from "../ui/student/practice/assignments/cards";
 
 export type NavLink = {
   name: string;
@@ -94,15 +90,7 @@ export type User = {
   role: Role;
   email: string;
   password: string;
-};
-
-export const typeCardList: Record<
-  string,
-  (userId: string) => Promise<Cards[]>
-> = {
-  student: getStudentCards,
-  teacher: getTeacherCards,
-  admin: getAdminCards,
+  grade?: number;
 };
 
 export type UserTable = {
@@ -136,16 +124,16 @@ export type AssignmentRow = {
   name: string;
   duration: string;
   deadline: Date;
-  status: string;
+  status: "In Progress" | "Dued" | "Done";
   score?: string;
-}
+};
 
-export type Exam = {
+export type ExamRow = {
   id: string;
   name: string;
   duration: string;
   questions: number;
   status: "Before Open" | "In Progress" | "Done" | "Dued";
-  deadline: string;
-  score?: string; // e.g. "9/10" — only when status === "done"
+  deadline: Date;
+  score?: string;
 };

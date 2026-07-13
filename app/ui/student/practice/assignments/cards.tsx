@@ -1,32 +1,5 @@
-import { Cards, IconName } from "@/app/lib/definition";
+import { IconName } from "@/app/lib/definition";
 import { Card } from "@/app/ui/cards";
-
-export async function getAssignmentCards({
-  totalAssignment,
-  totalInProgress,
-  totalDued,
-  avgScore,
-}: {
-  totalAssignment: number;
-  totalInProgress: number;
-  totalDued: number;
-  avgScore: number;
-}): Promise<Cards[]> {
-  return [
-    {
-      title: "Total Assignments",
-      value: totalAssignment,
-      type: "bookOpenIcon",
-    },
-    { title: "In Progress", value: totalInProgress, type: "bookOpenIcon" },
-    { title: "Dued", value: totalDued, type: "bookOpenIcon" },
-    {
-      title: "Average Score",
-      value: avgScore.toString + "/10",
-      type: "chartBarIcon",
-    },
-  ];
-}
 
 export default async function Page({
   totalAssignment,
@@ -49,7 +22,7 @@ export default async function Page({
     { title: "Dued", value: totalDued, type: "bookOpenIcon" },
     {
       title: "Average Score",
-      value: avgScore + "/10",
+      value: avgScore === '-1' ? "-" : avgScore + "/10",
       type: "chartBarIcon",
     },
   ];
@@ -57,7 +30,14 @@ export default async function Page({
     <>
       {CardList.map((card) => {
         const { title, value, type } = card;
-        return <Card key={title} title={title} value={value} type={type as IconName} />;
+        return (
+          <Card
+            key={title}
+            title={title}
+            value={value}
+            type={type as IconName}
+          />
+        );
       })}
     </>
   );

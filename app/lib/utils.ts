@@ -63,12 +63,53 @@ export const formatDateToLocal = (dateStr: Date, locale: string = "en-US") => {
   return formatter.format(date);
 };
 
+// Formats a DB timestamp as "hh:mm, Mon dd, yyyy" e.g. "10:18, Jul 07, 2026".
+// Composed from two formatters because Intl orders date-before-time in en-US.
+export const formatDateToTime = (dateStr: Date, locale: string = "en-US") => {
+  const date = new Date(dateStr);
+  const time = new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+  const day = new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  }).format(date);
+  return `${time}, ${day}`;
+};
+
 const displayPlural = (n: number, label: string) =>
   n ? n.toString() + " " + label + (n > 1 ? "s " : " ") : "";
 
 export const formatDuration = (duration: string) => {
   const parsedDuration = parseInt(duration);
-  const hours = Math.floor(parsedDuration / 60);
-  const minutes = parsedDuration - hours * 60;
-  return displayPlural(hours, "hour") + displayPlural(minutes, "minute");
+  const minutes = parsedDuration % 60;
+  const parsedDurationHours = (parsedDuration - minutes) / 60;
+  const hours = parsedDurationHours % 24;
+  const parsedDurationDays = (parsedDurationHours - hours) / 24;
+  const days = parsedDurationDays % 7;
+  const parsedDurationWeeks = (parsedDurationDays - days) / 7;
+  const weeks = parsedDurationWeeks % 52;
+  const years = Math.floor(((parsedDurationWeeks - weeks) * 7) / 365);
+  return (
+    displayPlural(years, "year") +
+    displayPlural(weeks, "week") +
+    displayPlural(days, "day") +
+    displayPlural(hours, "hour") +
+    displayPlural(minutes, "minute")
+  );
 };
+
+export const durationToMs = (duration: string) =>
+  parseInt(duration) * 60 * 1000;
+
+export const openTime = (deadline: Date, duration: string) =>
+  new Date(deadline.getTime() - durationToMs(duration));
+
+export const passedDeadline = (deadline: Date) =>
+  deadline.getTime() < Date.now();
+
+export const passedOpenTime = (deadline: Date, duration: string) =>
+  openTime(deadline, duration).getTime() < Date.now();

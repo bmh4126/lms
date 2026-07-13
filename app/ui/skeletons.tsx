@@ -32,12 +32,11 @@ export function CardSkeleton() {
 }
 
 export async function CardsSkeleton({
-  type,
+  amount,
 }: {
-  type: string;
+  amount: number;
 }) {
   // const amount = type === "student" ? 4 : type === "admin" ? 4 : 4;
-  const amount = 4;
   return (
     <>
       {Array.from({ length: amount }, (_, i) => (

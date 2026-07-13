@@ -37,8 +37,17 @@ export async function authenticate(
 
 export async function getUser(email: string) {
   try {
-    const user = await sql<User[]>`SELECT * FROM users WHERE email = ${email}`;
-    console.log(user[0].id);
+    const user = await sql<User[]>`
+    SELECT
+      u.id AS id,
+      u.name AS name,
+      u.role AS role,
+      u.email AS email, 
+      u.password AS password,
+      e.grade AS grade
+    FROM users u
+    LEFT JOIN enrollment e ON e.user_id = u.id
+    WHERE email = ${email}`;
     return user[0];
   } catch (error) {
     console.error("Failed to fetch user:", error);

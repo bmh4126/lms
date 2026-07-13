@@ -3,14 +3,15 @@
 import {
   LessonDetail,
   ChapterListItem,
-  Grade,
   TopicListItem,
   LessonListItem,
   UserTable,
   AssignmentRow,
+  ExamRow,
 } from "../../definition";
 import { z } from "zod";
 import { sql } from "../../db";
+import { passedDeadline, passedOpenTime } from "../../utils";
 
 // The single database connection for the whole app.
 // Only this module reads the connection string from the environment — every
@@ -32,36 +33,43 @@ export async function fetchHomeCardData(grade: number) {
   return { totalChapter };
 }
 
-export async function fetchGradeByUserId(userId: string) {
-  const data = await sql<Grade[]>`
-    SELECT
-      g.position AS position,
-      g.chapter_count AS chapter_count
-    FROM grades g
-    LEFT JOIN enrollment e ON e.grade = g.position
-    WHERE e.user_id = ${userId}
-  `;
-  return data[0];
+export async function fetchChapterCountsByGrade(grade: number) {
+  try {
+    const data = await sql`
+    SELECT chapter_count
+    FROM grades
+    WHERE position = ${grade}
+    `;
+    return data[0].chapter_count;
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot fetch chapter counts for such grade");
+  }
 }
 
 export async function fetchChaptersByGrade(grade: number) {
-  // Read-through cache for topic_count:
-  // For any chapter in this grade whose cached count is NULL (never computed),
-  // count it from the source of truth (topics) — correctly 0 when the chapter
-  // has no topics — and persist it. `WHERE ... IS NULL` means this only writes
-  // the first time; once populated, it's a cheap no-op update.
-  await sql`
+  try {
+    // Read-through cache for topic_count:
+    // For any chapter in this grade whose cached count is NULL (never computed),
+    // count it from the source of truth (topics) — correctly 0 when the chapter
+    // has no topics — and persist it. `WHERE ... IS NULL` means this only writes
+    // the first time; once populated, it's a cheap no-op update.
+    await sql`
     UPDATE chapters c
     SET topic_count = (SELECT COUNT(*) FROM topics t WHERE t.chapter_id = c.id)
     WHERE c.grade = ${grade} AND c.topic_count IS NULL
   `;
-  // Now the stored value is guaranteed non-null; read it directly (no aggregate).
-  return sql<ChapterListItem[]>`
+    // Now the stored value is guaranteed non-null; read it directly (no aggregate).
+    return sql<ChapterListItem[]>`
     SELECT id, title, position, topic_count
     FROM chapters
     WHERE grade = ${grade}
     ORDER BY position
   `;
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot fetch chapters for such grade.");
+  }
 }
 
 export async function fetchTopicCountByChapter(chapter_id: string) {
@@ -256,13 +264,14 @@ export async function fetchAssignmentRowsByGrade(
         e.kind = 'assignment'
         ORDER BY e.deadline DESC
         `;
-    const passedDeadline = (d: Date) => d.getTime() < Date.now();
     const tableData: AssignmentRow[] = data.map((d) => {
-      if (passedDeadline(d.deadline) && !d.score) return { ...d, status: "Dued" };
-      if (!passedDeadline(d.deadline) && !d.score) return { ...d, status: "In Progress" };
+      if (!passedDeadline(d.deadline) && !d.score)
+        return { ...d, status: "In Progress" };
+      if (passedDeadline(d.deadline) && !d.score)
+        return { ...d, status: "Dued" };
       return { ...d, status: "Done" };
     });
-    const totalAssignment = Number(data.length ?? "0");
+    const totalAssignment = Number(data.length);
     const totalInProgress = Number(
       data
         .map((d) => !passedDeadline(d.deadline) && !d.score)
@@ -273,17 +282,97 @@ export async function fetchAssignmentRowsByGrade(
         .map((d) => passedDeadline(d.deadline) && !d.score)
         .filter((d) => d === true).length,
     );
-    const avgScore = Number(
-      data
-        .filter((d) => d.score !== null)
-        .map((d) => (d.score ? Number(d.score) : 0))
-        .reduce((acc, score) => acc + score, 0) /
-        data.filter((d) => d.score !== null).length,
-    ).toFixed(2);
+    const inConsideration = data.filter((d) => passedDeadline(d.deadline));
+    const considertationAmount = inConsideration.length;
+    const avgScore = !considertationAmount
+      ? "-1"
+      : Number(
+          inConsideration
+            .map((d) => (d.score ? parseInt(d.score) : 0))
+            .reduce((acc, score) => acc + score, 0) /
+            Number(considertationAmount),
+        )
+          .toFixed(2)
+          .toString();
     return { tableData, totalAssignment, totalInProgress, totalDued, avgScore };
   } catch (e) {
     console.log("Database error: ", e);
     throw new Error("Cannot fetch assignments");
+  }
+}
+
+export async function fetchExamRowsByStudentId(grade: number, userId: string) {
+  try {
+    type ExamQueryRow = Omit<ExamRow, "status">;
+    const data = await sql<ExamQueryRow[]>`
+      SELECT
+        e.id AS id,
+        e.name AS name,
+        e.duration AS duration,
+        e.question_count AS questions,
+        e.deadline AS deadline,
+        s.score AS score
+        FROM exercises e
+        LEFT JOIN submissions s ON e.id = s.exercise_id AND s.user_id = ${userId}
+        WHERE e.grade = ${grade} AND
+        e.kind = 'exam'
+        ORDER BY e.deadline DESC
+        `;
+    const tableData: ExamRow[] = data.map((d) => {
+      if (!passedOpenTime(d.deadline, d.duration))
+        return { ...d, status: "Before Open" };
+      if (
+        passedOpenTime(d.deadline, d.duration) &&
+        !passedDeadline(d.deadline) &&
+        !d.score
+      )
+        return { ...d, status: "In Progress" };
+      if (passedDeadline(d.deadline) && !d.score)
+        return { ...d, status: "Dued" };
+      return { ...d, status: "Done" };
+    });
+    const totalExams = Number(data.length);
+    const upcoming = Number(
+      data.filter((d) => !passedOpenTime(d.deadline, d.duration)).length,
+    );
+    const totalInProgress = Number(
+      data.filter(
+        (d) =>
+          passedOpenTime(d.deadline, d.duration) &&
+          !passedDeadline(d.deadline) &&
+          !d.score,
+      ).length,
+    );
+    const completed = Number(
+      data.filter((d) => passedDeadline(d.deadline) && d.score).length,
+    );
+    const inConsideration = data.filter((d) => passedDeadline(d.deadline));
+    const totalDued = Number(
+      data.filter((d) => passedDeadline(d.deadline) && !d.score).length,
+    );
+    const considertationAmount = inConsideration.length;
+    const avgScore = !considertationAmount
+      ? Number(-1).toString()
+      : Number(
+          inConsideration
+            .map((d) => (d.score ? parseInt(d.score) : 0))
+            .reduce((acc, score) => acc + score, 0) /
+            Number(inConsideration.length),
+        )
+          .toFixed(2)
+          .toString();
+    return {
+      tableData,
+      totalExams,
+      totalInProgress,
+      upcoming,
+      completed,
+      totalDued,
+      avgScore,
+    };
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot fetch exams");
   }
 }
 
