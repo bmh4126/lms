@@ -9,31 +9,32 @@ import {
   AcademicCapIcon,
   UserIcon,
   CheckCircleIcon,
-  DocumentDuplicateIcon
+  DocumentDuplicateIcon,
 } from "@heroicons/react/24/outline";
 import { getStudentCards } from "../ui/student/curriculum/cards";
 import { getTeacherCards } from "../ui/teacher/dashboard/cards";
 import { getAdminCards } from "../ui/admin/cards";
+import { getAssignmentCards } from "../ui/student/practice/assignments/cards";
 
 export type NavLink = {
   name: string;
   href: string;
   icon: IconName;
-  options?: { name: string, href: string }[];
+  options?: { name: string; href: string }[];
 };
 
 export type IconName =
-  'pencilIcon' |
-  'numberedListIcon' |
-  'chartBarIcon' |
-  'homeIcon' |
-  'newspaperIcon' |
-  'shieldExclaimationIcon' |
-  'bookOpenIcon' |
-  'academicCapIcon' |
-  'userIcon' |
-  'checkCircleIcon' |
-  'documentDuplicateIcon';
+  | "pencilIcon"
+  | "numberedListIcon"
+  | "chartBarIcon"
+  | "homeIcon"
+  | "newspaperIcon"
+  | "shieldExclaimationIcon"
+  | "bookOpenIcon"
+  | "academicCapIcon"
+  | "userIcon"
+  | "checkCircleIcon"
+  | "documentDuplicateIcon";
 
 export const IconsMap = {
   pencilIcon: PencilIcon,
@@ -95,13 +96,14 @@ export type User = {
   password: string;
 };
 
-export const roleCardList: Record<
+export const typeCardList: Record<
   string,
   (userId: string) => Promise<Cards[]>
 > = {
   student: getStudentCards,
   teacher: getTeacherCards,
   admin: getAdminCards,
+  assignment: getAssignmentCards,
 };
 
 export type UserTable = {
@@ -118,4 +120,32 @@ export type UserForm = {
   name: string;
   email: string;
   grade: number;
+};
+
+export type Assignment = {
+  id: string;
+  name: string;
+  duration: string;
+  questions: number;
+  status: "In Progress" | "Done" | "Dued";
+  deadline: string;
+  score?: string; // e.g. "9/10" — only when status === "done"
+};
+
+export type AssignmentRow = {
+  id: string;
+  name: string;
+  duration: string;
+  deadline: Date;
+  score?: string;
+}
+
+export type Exam = {
+  id: string;
+  name: string;
+  duration: string;
+  questions: number;
+  status: "Before Open" | "In Progress" | "Done" | "Dued";
+  deadline: string;
+  score?: string; // e.g. "9/10" — only when status === "done"
 };

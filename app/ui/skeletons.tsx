@@ -10,7 +10,6 @@ import {
   treeList,
   treeWrapper,
 } from "./student/shared";
-import { ChevronDownIcon } from "@heroicons/react/24/outline";
 
 // Loading animation
 const shimmer =
@@ -35,7 +34,7 @@ export function CardSkeleton() {
 export async function CardsSkeleton({
   type,
 }: {
-  type: "student" | "admin" | "teacher";
+  type: string;
 }) {
   // const amount = type === "student" ? 4 : type === "admin" ? 4 : 4;
   const amount = 4;

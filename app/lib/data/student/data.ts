@@ -7,9 +7,11 @@ import {
   TopicListItem,
   LessonListItem,
   UserTable,
+  AssignmentRow,
 } from "../../definition";
 import { z } from "zod";
 import { sql } from "../../db";
+import { deriveAssignmentStatus } from "../../utils";
 
 // The single database connection for the whole app.
 // Only this module reads the connection string from the environment — every
@@ -20,7 +22,7 @@ export async function delay(duration: number) {
   await new Promise((resolve) => setTimeout(resolve, duration));
 }
 
-export async function fetchCardData(grade: number) {
+export async function fetchHomeCardData(grade: number) {
   const totalChapterPromise = await sql`
     SELECT COUNT(*)
     FROM chapters c
@@ -29,6 +31,42 @@ export async function fetchCardData(grade: number) {
   const data = await Promise.all([totalChapterPromise]);
   const totalChapter = Number(data[0][0].count ?? "0");
   return { totalChapter };
+}
+
+export async function fetchAssignmentCardData(grade: number, id:string) {
+  const totalAssignmentPromise = await sql`
+  SELECT COUNT(*)
+  FROM exercises e
+  WHERE grade = ${grade}
+  `;
+  const DeadlinePromise = await sql`
+  SELECT deadline, score
+  FROM exercises e
+  LEFT JOIN submissions s ON 
+    e.id = s.exercise_id AND
+    s.user_id = ${id}
+  WHERE grade = ${grade}
+  `;
+  const data = await Promise.all([totalAssignmentPromise, DeadlinePromise]);
+  const totalAssignment = Number(data[0][0].count ?? "0");
+  const totalInProgress = Number(
+    data[1]
+      .map((d) => d.deadline > Date.now() && !d.score)
+      .filter((d) => d === true).length,
+  );
+  const totalDued = Number(
+    data[1]
+      .map((d) => d.deadline < Date.now() && !d.score)
+      .filter((d) => d === true).length,
+  );
+  const avgScore = Number(
+    data[1]
+      .filter((d) => d.score !== null)
+      .map((d) => (d.score ? Number(d.score) : 0))
+      .reduce((acc, score) => acc + score, 0) /
+      data[1].filter((d) => d.score !== null).length
+  ).toFixed(2);
+  return { totalAssignment, totalInProgress, totalDued,avgScore };
 }
 
 export async function fetchGradeByUserId(userId: string) {
@@ -233,5 +271,44 @@ export async function fetchFilteredStudent(query: string, currentPage: number) {
   } catch (e) {
     console.log("Database error: ", e);
     throw new Error("Cannot fetch filterd students.");
+  }
+}
+
+export async function fetchAssignmentRowsByGrade(
+  grade: number,
+  userId: string,
+) {
+  try {
+    const data = await sql<AssignmentRow[]>`
+      SELECT
+        e.id AS id,
+        e.name AS name,
+        e.duration AS duration,
+        e.deadline AS deadline,
+        s.score AS score
+      FROM exercises e
+      LEFT JOIN submissions s ON e.id = s.exercise_id AND s.user_id = ${userId}
+      WHERE e.grade = ${grade} AND
+      e.kind = 'assignment'
+      ORDER BY e.deadline DESC
+    `;
+    return data;
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot fetch assignments");
+  }
+}
+
+export async function fetchKindById(id: string) {
+  try {
+    const data = await sql<{ kind: string }[]>`
+      SELECT kind
+      FROM exercises e
+      WHERE e.id = ${id}
+    `;
+    return data[0];
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot fetch the kind of this exercise.");
   }
 }
