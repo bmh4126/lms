@@ -63,20 +63,12 @@ export const formatDateToLocal = (dateStr: Date, locale: string = "en-US") => {
   return formatter.format(date);
 };
 
+const displayPlural = (n: number, label: string) =>
+  n ? n.toString() + " " + label + (n > 1 ? "s " : " ") : "";
+
 export const formatDuration = (duration: string) => {
   const parsedDuration = parseInt(duration);
-  if (parsedDuration < 60) {
-    return duration.toString() + " min" + (parsedDuration > 1 ? "s" : "");
-  }
   const hours = Math.floor(parsedDuration / 60);
   const minutes = parsedDuration - hours * 60;
-  return (
-    hours.toString() +
-    " hour" +
-    (hours > 1 ? "s" : "") +
-    " " +
-    minutes.toString() +
-    " minute" +
-    (minutes > 1 ? "s" : "")
-  );
+  return displayPlural(hours, "hour") + displayPlural(minutes, "minute");
 };
