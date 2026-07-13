@@ -11,7 +11,7 @@ export function StatusCell({
     return (
       <div className="flex items-center gap-2">
         <span className="shadow-md/30 w-full flex justify-center items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-md font-medium text-green-700">
-          {score ? score : null}
+          {score ? score + "/10" : null}
         </span>
       </div>
     );

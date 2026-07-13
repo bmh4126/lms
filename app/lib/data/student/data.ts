@@ -65,7 +65,7 @@ export async function fetchAssignmentCardData(grade: number, id:string) {
       .map((d) => (d.score ? Number(d.score) : 0))
       .reduce((acc, score) => acc + score, 0) /
       data[1].filter((d) => d.score !== null).length
-  ).toFixed(2);
+  ).toFixed(2).toString() + '/10';
   return { totalAssignment, totalInProgress, totalDued,avgScore };
 }
 
