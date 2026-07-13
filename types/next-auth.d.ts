@@ -4,9 +4,10 @@ import { Role } from "@/app/lib/definition";
 declare module "next-auth" {
   interface User {
     role: Role;
+    grade?: number;
   }
   interface Session {
-    user: { role: Role; } & DefaultSession["user"];
+    user: { role: Role; grade?: number } & DefaultSession["user"];
   }
 }
 

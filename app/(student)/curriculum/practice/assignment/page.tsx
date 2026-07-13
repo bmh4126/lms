@@ -10,6 +10,7 @@ import { auth } from "@/auth";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CardsSkeleton } from "@/app/ui/skeletons";
+import { getUser } from "@/app/lib/action/common-action";
 
 export const metadata: Metadata = {
   title: "Assignment",
@@ -21,9 +22,9 @@ export default async function Page() {
   const user = await auth();
   const userId = user?.user.id;
   if (!userId) notFound();
-  const userGrade = await fetchGradeByUserId(userId);
+  const userGrade = user?.user.grade || 0;
   const { tableData, totalAssignment, totalInProgress, totalDued, avgScore } =
-    await fetchAssignmentRowsByGrade(userGrade.position, userId);
+    await fetchAssignmentRowsByGrade(userGrade, userId);
   return (
     <main>
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>

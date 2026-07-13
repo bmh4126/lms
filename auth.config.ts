@@ -33,6 +33,7 @@ export const authConfig = {
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
+        token.grade = user.grade;
       }
       return token;
     },
@@ -41,6 +42,7 @@ export const authConfig = {
     async session({ session, token }) {
       session.user.role = token.role as Role;
       session.user.id = token.sub as string;
+      session.user.grade = token.grade as number;
       return session;
     },
   },
