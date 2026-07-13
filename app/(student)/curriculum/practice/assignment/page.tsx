@@ -5,7 +5,7 @@ import AssignmentTable from "@/app/ui/student/practice/assignments/assignment-ta
 import { fetchAssignmentRowsByGrade } from "@/app/lib/data/student/data";
 import { auth } from "@/auth";
 import { notFound } from "next/navigation";
-import Pagination from "@/app/ui/admin/paginations";
+import Pagination from "@/app/ui/paginations";
 
 export const metadata: Metadata = {
   title: "Assignment",
@@ -34,9 +34,9 @@ export default async function Page() {
           avgScore={avgScore}
         />
       </div>
-      <div className="mt-5 flex w-full justify-center">
+      {/* <div className="mt-5 flex w-full justify-center">
         <Pagination totalPages={1} />
-      </div>
+      </div> */}
       {/* Part 2: assignments/exams to do */}
       <AssignmentTable assignments={tableData} /> {/*Change later*/}
     </main>

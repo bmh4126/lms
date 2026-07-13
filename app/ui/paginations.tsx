@@ -7,7 +7,6 @@ import { generatePagination } from "@/app/lib/utils";
 import { useSearchParams, usePathname } from "next/navigation";
 
 export default function Pagination({ totalPages }: { totalPages: number }) {
-  // NOTE: Uncomment this code in Chapter 10
 
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -74,7 +73,7 @@ function PaginationNumber({
   isActive: boolean;
 }) {
   const className = clsx(
-    "flex h-10 w-10 items-center justify-center text-sm border",
+    "flex h-10 w-10 items-center justify-center text-sm border shadow-md/30",
     {
       "rounded-l-md": position === "first" || position === "single",
       "rounded-r-md": position === "last" || position === "single",
@@ -103,7 +102,7 @@ function PaginationArrow({
   isDisabled?: boolean;
 }) {
   const className = clsx(
-    "flex h-10 w-10 items-center justify-center rounded-md border",
+    "flex h-10 w-10 items-center justify-center rounded-md border shadow-md/30",
     {
       "pointer-events-none text-gray-300": isDisabled,
       "hover:bg-gray-100": !isDisabled,

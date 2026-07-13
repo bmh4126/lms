@@ -5,7 +5,7 @@ import ExamTable from "@/app/ui/student/practice/exams/exam-table";
 import { auth } from "@/auth";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Pagination from "@/app/ui/admin/paginations";
+import Pagination from "@/app/ui/paginations";
 
 export const metadata: Metadata = {
   title: "Exams",
@@ -45,9 +45,9 @@ export default async function Page() {
           avgScore={avgScore}
         />
       </div>
-      <div className="mt-5 flex w-full justify-center">
+      {/* <div className="mt-5 flex w-full justify-center">
         <Pagination totalPages={1} />
-      </div>
+      </div> */}
       {/* Part 2: assignments/exams to do */}
       <ExamTable exams={tableData} />
     </main>

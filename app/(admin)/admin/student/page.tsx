@@ -2,7 +2,7 @@ import { lusitana } from "@/app/ui/font";
 import { Metadata } from "next";
 import { Suspense } from "react";
 import Table from "@/app/ui/admin/user/student/table-content";
-import Pagination from "@/app/ui/admin/paginations";
+import Pagination from "@/app/ui/paginations";
 import Search from "@/app/ui/search";
 import { CreateObj } from "@/app/ui/admin/buttons";
 import UsersTableSkeleton from "@/app/ui/admin/user/table-skeleton";

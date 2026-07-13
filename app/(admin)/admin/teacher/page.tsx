@@ -2,7 +2,7 @@ import { lusitana } from "@/app/ui/font";
 import { Metadata } from "next";
 import { Suspense } from "react";
 import Table from "@/app/ui/admin/user/teacher/table-content";
-import Pagination from "@/app/ui/admin/paginations";
+import Pagination from "@/app/ui/paginations";
 import { fetchTeachersPages } from "@/app/lib/data/teacher/data";
 import Search from "@/app/ui/search";
 import { CreateObj } from "@/app/ui/admin/buttons";
