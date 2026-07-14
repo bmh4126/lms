@@ -2,10 +2,10 @@ import { lusitana } from "@/app/ui/font";
 import { Metadata } from "next";
 import AssignmentCards from "@/app/ui/student/practice/assignments/cards";
 import AssignmentTable from "@/app/ui/student/practice/assignments/assignment-table";
-import { fetchAssignmentRowsByGrade } from "@/app/lib/data/student/data";
+import { fetchAssignmentRowsByClass,fetchStudentClassById } from "@/app/lib/data/student/data";
 import { auth } from "@/auth";
 import { notFound } from "next/navigation";
-import Pagination from "@/app/ui/paginations";
+// import Pagination from "@/app/ui/paginations";
 
 export const metadata: Metadata = {
   title: "Assignment",
@@ -14,12 +14,13 @@ export const metadata: Metadata = {
 // DRAFT UI — cards + table use mock data. Real data will be linked later
 // (e.g. wrap the cards/table in <Suspense> with their own server components).
 export default async function Page() {
-  const user = await auth();
-  const userId = user?.user.id;
-  if (!userId) notFound();
-  const userGrade = user?.user.grade || 0;
+  const student = await auth();
+  if (!student) notFound();
+  const studentId = student.user.id;
+  if (!studentId) notFound();
+  const studentClass = await fetchStudentClassById(studentId);
   const { tableData, totalAssignment, totalInProgress, totalDued, avgScore } =
-    await fetchAssignmentRowsByGrade(userGrade, userId);
+    await fetchAssignmentRowsByClass(studentClass.class_id, studentId);
   return (
     <main>
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>

@@ -31,10 +31,8 @@ export const authConfig = {
     },
     // Persist custom fields on the token at sign-in (`user` is only set then)...
     async jwt({ token, user }) {
-      if (user) {
+      if (user)
         token.role = user.role;
-        token.grade = user.grade;
-      }
       return token;
     },
     // ...and expose them on the session so `auth.user.role` is available here
@@ -42,7 +40,6 @@ export const authConfig = {
     async session({ session, token }) {
       session.user.role = token.role as Role;
       session.user.id = token.sub as string;
-      session.user.grade = token.grade as number;
       return session;
     },
   },

@@ -10,41 +10,43 @@ const links: NavLink[] = [
     icon: "homeIcon",
   },
   {
-    name: "Curriculum",
-    href: "/admin/curriculum",
+    name: "Edit",
+    href: "#",
     icon: "bookOpenIcon",
-  },
-  {
-    name: "Exams",
-    href: "/admin/exam",
-    icon: "numberedListIcon",
-  },
-  {
-    name: "Resources",
-    href: "/admin/resource",
-    icon: "newspaperIcon",
-  },
-  {
-    name: "Teachers",
-    href: "/admin/teacher",
-    icon: "userIcon",
-  },
-  {
-    name: "Students",
-    href: "/admin/student",
-    icon: "academicCapIcon",
+    options: [
+      {
+        name: "Curriculum",
+        href: "/admin/edit/curriculum/",
+      },
+      {
+        name: "Exams",
+        href: "/admin/edit/exam",
+      },
+      {
+        name: "Resources",
+        href: "/admin/edit/resource",
+      },
+      {
+        name: "Teachers",
+        href: "/admin/edit/teacher",
+      },
+      {
+        name: "Students",
+        href: "/admin/edit/student",
+      },
+    ],
   },
 ];
 
 export default async function Layout({ children }: { children: ReactNode }) {
   const session = await auth();
   const userName: string = session?.user?.name as string;
-    return (
-      <div className="flex h-screen flex-col md:flex-row md:overflow-hidden">
-        <div className="w-full flex-none md:w-64">
-          <SideNav links={links} userName={userName} />
-        </div>
-        <div className="grow p-6 md:overflow-y-auto md:p-12">{children}</div>
+  return (
+    <div className="flex h-screen flex-col md:flex-row md:overflow-hidden">
+      <div className="w-full flex-none md:w-64">
+        <SideNav links={links} userName={userName} />
       </div>
-    );
+      <div className="grow p-6 md:overflow-y-auto md:p-12">{children}</div>
+    </div>
+  );
 }

@@ -1,3 +1,5 @@
+import { ExamRow } from "./definition";
+
 export const generatePagination = (currentPage: number, totalPages: number) => {
   // If the total number of pages is 7 or less,
   // display all pages without any ellipsis.
@@ -105,11 +107,29 @@ export const formatDuration = (duration: string) => {
 export const durationToMs = (duration: string) =>
   parseInt(duration) * 60 * 1000;
 
-export const openTime = (deadline: Date, duration: string) =>
-  new Date(deadline.getTime() - durationToMs(duration));
+export const closeTime = (start: Date, duration: string) =>
+  new Date(start.getTime() + durationToMs(duration));
 
-export const passedDeadline = (deadline: Date) =>
-  deadline.getTime() < Date.now();
+export const passedCloseTime = (close:Date) =>
+  close.getTime() < Date.now();
 
-export const passedOpenTime = (deadline: Date, duration: string) =>
-  openTime(deadline, duration).getTime() < Date.now();
+export const passedOpenTime = (start: Date) =>
+  start.getTime() < Date.now();
+
+// Ordering:
+//  1) "Before Open" exams come first, most upcoming first (ascending start:
+//     among future starts the smallest start - now is the earliest start).
+//  2) All other exams follow, ordered by start descending (newest first).
+export const compareExams = (a: ExamRow, b: ExamRow) => {
+  const aBeforeOpen = a.status === "Before Open";
+  const bBeforeOpen = b.status === "Before Open";
+
+  // Before Open group always sorts ahead of the rest
+  if (aBeforeOpen !== bBeforeOpen) return aBeforeOpen ? -1 : 1;
+
+  // Within Before Open: soonest to open first
+  if (aBeforeOpen) return a.start.getTime() - b.start.getTime();
+
+  // Everyone else: most recent first
+  return b.start.getTime() - a.start.getTime();
+};

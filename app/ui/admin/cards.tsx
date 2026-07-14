@@ -3,12 +3,12 @@ import { Card } from "../cards";
 import { IconName } from "@/app/lib/definition";
 
 export default async function Page() {
-  const { totalGrades, totalStudents, totalTeachers } = await fetchCardData();
+  const { totalClasses, totalStudents, totalTeachers } = await fetchCardData();
   const CardList = [
-    { title: "Total Chapters", value: totalGrades, type: "chapter" },
-    { title: "Total Students", value: totalStudents, type: "test" },
-    { title: "Total Teachers", value: totalTeachers, type: "test" },
-    { title: "Demo 4", value: 4, type: "test" },
+    { title: "Total Chapters", value: totalClasses, type: "bookOpenIcon" },
+    { title: "Total Students", value: totalStudents, type: "bookOpenIcon" },
+    { title: "Total Teachers", value: totalTeachers, type: "bookOpenIcon" },
+    { title: "Demo 4", value: 4, type: "bookOpenIcon" },
   ];
   return (
     <>

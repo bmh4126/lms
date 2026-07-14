@@ -1,9 +1,9 @@
-import Back from "@/app/ui/back";
 import { Metadata } from "next";
+import Back from "@/app/ui/back";
 import { fetchKindById } from "@/app/lib/data/student/data";
 
 export const metadata: Metadata = {
-  title: "Review",
+  title: "Session",
 };
 
 export default async function Page(prop: { params: Promise<{ id: string }> }) {
@@ -17,7 +17,8 @@ export default async function Page(prop: { params: Promise<{ id: string }> }) {
       ) : (
         <Back href="/curriculum/practice/exam/" />
       )}
-      <p>Review assignment or exams</p>
+
+      <p>Do exam</p>
     </>
   );
 }

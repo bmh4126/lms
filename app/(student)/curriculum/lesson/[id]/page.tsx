@@ -25,7 +25,7 @@ export default async function Page(prop: { params: Promise<{ id: string }> }) {
         <h1
           className={`${lusitana.className} text-center text-xl md:text-2xl font-[700]`}
         >
-          Lesson {lesson.position}: {lesson.title}
+          Lesson {lesson.position}: {lesson.name}
         </h1>
       </div>
       <div className="block w-full h-full">

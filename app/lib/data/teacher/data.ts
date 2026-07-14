@@ -1,32 +1,44 @@
 "use server";
 
 import { sql } from "../../db";
-import { UserTable } from "../../definition";
-import { LessonDetail, Grade, ChapterListItem, TopicListItem, LessonListItem} from "../../definition";
-import z from 'zod';
+import { TeacherTable } from "../../definition";
+import {
+  LessonDetail,
+  ChapterListItem,
+  TopicListItem,
+  LessonListItem,
+} from "../../definition";
+import z from "zod";
 
-export async function fetchCardData(grade: number) {
+export async function fetchCardData(class_id:string, subject_id:string) {
   const totalChapterPromise = await sql`
-    SELECT COUNT(*)
-    FROM chapters c
-    WHERE grade = ${grade}
+    SELECT chapter_count
+    FROM subjects
+    WHERE id = ${subject_id}
   `;
-  const data = await Promise.all([totalChapterPromise]);
-  const totalChapter = Number(data[0][0].count ?? "0");
-  return { totalChapter };
+  const totalStudentPromise = await sql`
+    SELECT COUNT(*)
+    FROM classes c
+    JOIN enrollments e ON e.class_id = c.id
+    WHERE c.id = ${class_id}
+  `;
+  const data = await Promise.all([totalChapterPromise,totalStudentPromise]);
+  const totalChapters = Number(data[0][0].chapter_count ?? 0);
+  const totalStudents = Number(data[1][0].count ?? 0)
+  return { totalChapters,totalStudents };
 }
 
-export async function fetchGradeByUserId(userId: string) {
-  const data = await sql<Grade[]>`
-    SELECT
-      g.position AS position,
-      g.chapter_count AS chapter_count
-    FROM grades g
-    LEFT JOIN enrollment e ON e.grade = g.position
-    WHERE e.user_id = ${userId}
-  `;
-  return data[0];
-}
+// export async function fetchClassByTeacherId(teacherId: string) {
+//   const data = await sql`
+//     SELECT
+//       g.position AS position,
+//       g.chapter_count AS chapter_count
+//     FROM allocation
+//     LEFT JOIN enrollment e ON e.grade = g.position
+//     WHERE e.user_id = ${userId}
+//   `;
+//   return data[0];
+// }
 
 export async function fetchChaptersByGrade(grade: number) {
   // Read-through cache for topic_count:
@@ -49,7 +61,9 @@ export async function fetchChaptersByGrade(grade: number) {
 }
 
 export async function fetchTopicCountByChapter(chapter_id: string) {
-  const validatedId = z.object({ chapter_id: z.uuid() }).safeParse({ chapter_id });
+  const validatedId = z
+    .object({ chapter_id: z.uuid() })
+    .safeParse({ chapter_id });
   if (!validatedId.success) {
     throw {
       errors: validatedId.error.message,
@@ -68,7 +82,9 @@ export async function fetchTopicCountByChapter(chapter_id: string) {
 
 export async function fetchTopicsByChapter(chapter_id: string) {
   // await delay(3000); //Remove later
-  const validatedId = z.object({ chapter_id: z.uuid() }).safeParse({ chapter_id });
+  const validatedId = z
+    .object({ chapter_id: z.uuid() })
+    .safeParse({ chapter_id });
   if (!validatedId.success) {
     throw {
       errors: validatedId.error.message,
@@ -170,50 +186,43 @@ export async function fetchLessonById(id: string) {
 
 const ITEMS_PER_PAGE = 6;
 
+export async function fetchTeachersPages(query: string) {
+  try {
+    const data = await sql`
+    SELECT COUNT(*)
+    FROM allocations a
+    JOIN users u ON u.id = a.teacher_id
+    WHERE
+      u.name ILIKE ${`%${query}%`} OR
+      u.email ILIKE ${`%${query}%`}
+    `;
+    const totalPages = Math.ceil(Number(data[0].count) / ITEMS_PER_PAGE) || 1;
+    return totalPages;
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot fetch total teachers pages");
+  }
+}
+
 export async function fetchFilteredTeacher(query: string, currentPage: number) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-  // const queryDate = formatDateToLocal(query);
   try {
-    return await sql<UserTable[]>`
+    return await sql<TeacherTable[]>`
     SELECT
       u.id,
       u.name,
       u.email,
-      e.grade,
-      u.role,
       u.created_at
-    FROM users u
-    JOIN enrollment e ON u.id = e.user_id
+    FROM allocations a
+    JOIN users u ON u.id = a.teacher_id
     WHERE
-      u.role = 'teacher' AND
-      (u.name ILIKE ${`%${query}%`} OR
-      u.email ILIKE ${`%${query}%`} OR
-      e.grade::text ILIKE ${`%${query}%`})
-    ORDER BY e.grade ASC, u.name ASC
+      u.name ILIKE ${`%${query}%`} OR
+      u.email ILIKE ${`%${query}%`}
+    ORDER BY u.name ASC
     LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
     `;
   } catch (e) {
     console.log("Database error: ", e);
     throw new Error("Failed to fetch teachers");
-  }
-}
-
-export async function fetchTeachersPages(query: string) {
-  try {
-    const data = await sql`
-    SELECT COUNT(*)
-    FROM users u
-    JOIN enrollment e ON u.id = e.user_id
-    WHERE
-      u.role = 'teacher' AND
-      (u.name ILIKE ${`%${query}%`} OR
-      u.email ILIKE ${`%${query}%`} OR
-      e.grade::text ILIKE ${`%${query}%`})
-    `;
-    const totalPages = Math.ceil(Number(data[0].count) / ITEMS_PER_PAGE);
-    return totalPages;
-  } catch (e) {
-    console.log("Database error: ", e);
-    throw new Error("Cannot fetch total teachers pages");
   }
 }

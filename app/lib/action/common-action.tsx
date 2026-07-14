@@ -39,14 +39,12 @@ export async function getUser(email: string) {
   try {
     const user = await sql<User[]>`
     SELECT
-      u.id AS id,
-      u.name AS name,
-      u.role AS role,
-      u.email AS email, 
-      u.password AS password,
-      e.grade AS grade
-    FROM users u
-    LEFT JOIN enrollment e ON e.user_id = u.id
+      id,
+      name,
+      role,
+      email, 
+      password
+    FROM users
     WHERE email = ${email}`;
     return user[0];
   } catch (error) {

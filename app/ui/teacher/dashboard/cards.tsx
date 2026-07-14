@@ -1,19 +1,20 @@
 import { fetchCardData } from "@/app/lib/data/teacher/data";
-import { auth } from "@/auth";
-import { notFound } from "next/navigation";
 import { Card } from "../../cards";
 import { IconName } from "@/app/lib/definition";
 
-export default async function Page() {
-  const user = await auth();
-  if (!user) notFound();
-  const userGrade = user.user.grade || 0;
-  const { totalChapter } = await fetchCardData(userGrade);
+export default async function Page({
+  class_id,
+  subject_id,
+}: {
+  class_id: string;
+  subject_id: string;
+}) {
+  const { totalChapters,totalStudents } = await fetchCardData(class_id, subject_id); //Change later
   const CardList = [
-    { title: "Total Chapters", value: totalChapter, type: "chapter" },
-    { title: "Demo 2", value: 2, type: "test" },
-    { title: "Demo 3", value: 3, type: "test" },
-    { title: "Demo 4", value: 4, type: "test" },
+    { title: "Total Chapters", value: totalChapters, type: "bookOpenIcon" },
+    { title: "Total Student", value: totalStudents, type: "academicCapIcon" },
+    { title: "Demo 3", value: 3, type: "homeIcon" },
+    { title: "Demo 4", value: 4, type: "homeIcon" },
   ];
   return (
     <>

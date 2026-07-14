@@ -20,44 +20,54 @@ export function Button({ children, className, ...rest }: ButtonProps) {
 }
 
 export function PracticeActionButton({
-  action,
-  disabled,
+  status,
   id,
+  type,
 }: {
-  action: "review" | "continue" | "locked";
-  disabled?: boolean;
+  status: "Done" | "In Progress" | "Dued" | "Before Open";
   id: string;
+  type: string;
 }) {
-  const label =
-    action === "review"
-      ? "Review"
-      : action === "locked"
-        ? "Locked"
-        : "Continue";
-  const styles =
-    action === "review"
-      ? "shadow-md/30 bg-gray-100 text-gray-700 hover:bg-gray-200"
-      : action === "locked"
-        ? "disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none"
-        : "shadow-md/30 bg-blue-500 text-white hover:bg-blue-400";
-  const hrefLink = action === "review" ? "review" : "do";
+  const getLabel = (status: string): [string, string] => {
+    switch (status) {
+      case "Before Open":
+        return [
+          "Locked",
+          "disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none",
+        ];
+      case "Done":
+      case "Dued":
+        return [
+          "Review",
+          "shadow-md/30 bg-gray-100 text-gray-700 hover:bg-gray-200",
+        ];
+      case "In Progress":
+        return [
+          "Continue",
+          "shadow-md/30 bg-blue-500 text-white hover:bg-blue-400",
+        ];
+      default:
+        return ["", ""];
+    }
+  };
+  const [label, styles] = getLabel(status);
+  const hrefLink = label === "Review" ? `review/${id}` : `${type}/${id}`;
   return (
     <>
-      {action === "locked" ? (
-        <Link href='#'>
+      {label === "Locked" ? (
+        <Link href="#">
           <button
             type="button"
-            disabled={disabled}
+            disabled={label === "Locked"}
             className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${styles}`}
           >
             {label}
           </button>
         </Link>
       ) : (
-        <Link href={`/curriculum/practice/${hrefLink}/${id}`}>
+        <Link href={`/curriculum/practice/${hrefLink}`}>
           <button
             type="button"
-            disabled={disabled}
             className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${styles}`}
           >
             {label}

@@ -1,15 +1,15 @@
 import { lusitana } from "@/app/ui/font";
 import { Metadata } from "next";
 import { Suspense } from "react";
-import Table from "@/app/ui/admin/user/student/table-content";
+import Table from "@/app/ui/admin/user/teacher/table";
 import Pagination from "@/app/ui/paginations";
+import { fetchTeachersPages } from "@/app/lib/data/teacher/data";
 import Search from "@/app/ui/search";
 import { CreateObj } from "@/app/ui/admin/buttons";
 import UsersTableSkeleton from "@/app/ui/admin/user/table-skeleton";
-import { fetchStudentsPages } from "@/app/lib/data/student/data";
 
 export const metadata: Metadata = {
-  title: "Students",
+  title: "Teachers",
 };
 
 export default async function Page(props: {
@@ -21,15 +21,15 @@ export default async function Page(props: {
   const searchParam = await props.searchParams;
   const query = searchParam?.query || "";
   const currentPage = Number(searchParam?.page || "1");
-  const totalPages = await fetchStudentsPages(query);
+  const totalPages = await fetchTeachersPages(query);
   return (
     <div className="w-full">
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
-        Students Page
+        Teachers Page
       </h1>
       <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
         <Search placeholder="Search for teacher..." />
-        <CreateObj type="student" />
+        <CreateObj type="teacher" />
       </div>
       <div className="mt-5 flex w-full justify-center">
         <Pagination totalPages={totalPages} />

@@ -1,5 +1,5 @@
 import { lusitana } from "@/app/ui/font";
-import { CardsSkeleton, StudentTableSkeleton } from "@/app/ui/skeletons";
+import { CardsSkeleton, AssignmentTableSkeleton } from "@/app/ui/skeletons";
 
 // Route-level fallback: shown while the page's own server work resolves (grade
 // lookup + chapter count) — before the page can render its inner Suspense
@@ -14,7 +14,7 @@ export default function Loading() {
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <CardsSkeleton amount={4} />
       </div>
-      <StudentTableSkeleton amount={4} /> {/* Change later*/}
+      <AssignmentTableSkeleton />
     </main>
   );
 }

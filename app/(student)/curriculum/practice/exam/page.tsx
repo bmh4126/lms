@@ -1,4 +1,4 @@
-import { fetchExamRowsByStudentId } from "@/app/lib/data/student/data";
+import { fetchExamRowsByStudentId,fetchStudentClassById } from "@/app/lib/data/student/data";
 import { lusitana } from "@/app/ui/font";
 import ExamCards from "@/app/ui/student/practice/exams/cards";
 import ExamTable from "@/app/ui/student/practice/exams/exam-table";
@@ -14,11 +14,11 @@ export const metadata: Metadata = {
 // DRAFT UI — cards + table use mock data. Real data will be linked later
 // (e.g. wrap the cards/table in <Suspense> with their own server components).
 export default async function Page() {
-  const user = await auth();
-  const userId = user?.user.id;
-  if (!userId) notFound();
-  const userGrade = user.user.grade || 0;
-  // const {tableData, upcoming, completed, avgScore} = await
+  const student = await auth();
+  if (!student) notFound();
+  const studentId = student.user.id;
+  if (!studentId) notFound();
+  const studentClass = await fetchStudentClassById(studentId);
   const {
     tableData,
     totalExams,
@@ -27,7 +27,7 @@ export default async function Page() {
     completed,
     totalDued,
     avgScore,
-  } = await fetchExamRowsByStudentId(userGrade, userId);
+  } = await fetchExamRowsByStudentId(studentClass.class_id, studentId);
   return (
     <main>
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>

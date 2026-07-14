@@ -52,32 +52,27 @@ export type Cards = {
   type: IconName;
 };
 
-export type Grade = {
-  position: number;
-  chapter_count: number;
-};
-
 export type ChapterListItem = {
   id: string;
-  title: string;
+  name: string;
   position: number;
   topic_count: number;
 };
 
 export type TopicListItem = {
   id: string;
-  title: string;
+  name: string;
   position: number;
   lesson_count: number;
 };
 export type LessonListItem = {
   id: string;
-  title: string;
+  name: string;
   position: number | string;
 };
 
 export type LessonDetail = {
-  title: string;
+  name: string;
   position: string | number;
   video_url: string;
 };
@@ -93,20 +88,32 @@ export type User = {
   grade?: number;
 };
 
-export type UserTable = {
+export type StudentTable = {
   id: string;
   name: string;
   email: string;
-  grade: string;
-  role: string;
-  created_at: string;
+  label: string;
+  created_at: Date;
 };
 
-export type UserForm = {
+export type StudentForm = {
   id: string;
   name: string;
   email: string;
   grade: number;
+};
+
+export type TeacherTable = {
+  id: string;
+  name: string;
+  email: string;
+  created_at: Date;
+};
+
+export type TeacherForm = {
+  id: string;
+  name: string;
+  email: string;
 };
 
 export type Assignment = {
@@ -122,8 +129,7 @@ export type Assignment = {
 export type AssignmentRow = {
   id: string;
   name: string;
-  duration: string;
-  deadline: Date;
+  close: Date;
   status: "In Progress" | "Dued" | "Done";
   score?: string;
 };
@@ -132,8 +138,8 @@ export type ExamRow = {
   id: string;
   name: string;
   duration: string;
-  questions: number;
+  question_count: number;
   status: "Before Open" | "In Progress" | "Done" | "Dued";
-  deadline: Date;
+  start: Date;
   score?: string;
 };

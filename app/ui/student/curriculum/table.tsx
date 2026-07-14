@@ -66,7 +66,7 @@ function ChapterNode({ chapter }: { chapter: ChapterListItem }) {
       >
         <div className="flex grow items-center">
           <p>
-            Chapter {chapter.position}: {chapter.title}
+            Chapter {chapter.position}: {chapter.name}
           </p>
           <div className="hidden w-auto grow rounded-md bg-gray-50 md:block"></div>
           {!open ? (
@@ -118,7 +118,7 @@ function TopicNode({ topic }: { topic: TopicListItem }) {
       >
         <div className="flex grow items-center">
           <p>
-            Topic {topic.position}: {topic.title}
+            Topic {topic.position}: {topic.name}
           </p>
           <div className="hidden w-auto grow rounded-md bg-gray-50 md:block"></div>
           {!open ? (
@@ -141,7 +141,7 @@ function TopicNode({ topic }: { topic: TopicListItem }) {
                   href={`/curriculum/lesson/${lesson.id}`}
                   className={`${lessonRow} hover:bg-blue-100 hover:text-blue-600`}
                 >
-                  Lesson {lesson.position}: {lesson.title}
+                  Lesson {lesson.position}: {lesson.name}
                 </Link>
               </li>
             ))}

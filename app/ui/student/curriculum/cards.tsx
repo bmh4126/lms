@@ -4,11 +4,8 @@ import { notFound } from "next/navigation";
 import { Card } from "../../cards";
 import { IconName } from "@/app/lib/definition";
 
-export default async function Page() {
-  const user = await auth();
-  if (!user) notFound();
-  const userGrade = user.user.grade || 0;
-  const { totalChapter } = await fetchHomeCardData(userGrade);
+export default async function Page({ subject_id }: { subject_id: string }) {
+  const { totalChapter } = await fetchHomeCardData(subject_id);
   const CardList = [
     { title: "Total Chapters", value: totalChapter, type: "bookOpenIcon" },
     { title: "Demo 2", value: 2, type: "bookOpenIcon" },

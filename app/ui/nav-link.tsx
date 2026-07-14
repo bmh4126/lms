@@ -47,9 +47,8 @@ export default function NavLinks({ links }: { links: NavLink[] }) {
                   "text-blue-600 bg-blue-100":
                     pathname === link.href ||
                     (link.options &&
-                      link.options
-                        .map((option) => option.href === pathname)
-                        .filter((v) => v === true).length),
+                      link.options.filter((option) => option.href === pathname)
+                        .length),
                 },
               )}
             >

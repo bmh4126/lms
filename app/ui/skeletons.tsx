@@ -125,3 +125,169 @@ export function LessonListSkeleton({ amount }: { amount: number }) {
     </ul>
   );
 }
+
+// A full page (6 rows) of the assignment/exam tables. Both mirror the real
+// table's column widths + the mobile card layout so the table area holds a
+// constant height while data loads — no jump when the rows swap in.
+const PRACTICE_ROWS = 6;
+
+function Bar({ className }: { className: string }) {
+  return <div className={`rounded bg-gray-200 ${className}`} />;
+}
+
+// Matches AssignmentTable: Name / Status / Due / Action (mobile: name + Due).
+export function AssignmentTableSkeleton() {
+  return (
+    <div className="mt-6 flow-root">
+      <div className="inline-block min-w-full align-middle">
+        <div className="animate-pulse rounded-lg shadow-lg/30 bg-gray-50 p-2 md:pt-0">
+          {/* Mobile: cards */}
+          <div className="md:hidden">
+            {Array.from({ length: PRACTICE_ROWS }).map((_, i) => (
+              <div key={i} className="mb-2 w-full rounded-md bg-white p-4">
+                <div className="flex w-full items-center justify-between gap-2 border-b pb-4">
+                  <Bar className="h-6 w-1/2" />
+                </div>
+                <div className="flex w-full items-center justify-between pt-4">
+                  <Bar className="h-4 w-36" />
+                  <div className="flex flex-col items-end gap-2">
+                    <Bar className="h-6 w-16 rounded-full" />
+                    <Bar className="h-8 w-20" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: table */}
+          <table className="hidden min-w-full text-gray-900 md:table table-fixed">
+            <thead className="rounded-lg text-left text-sm font-normal">
+              <tr>
+                <th className="w-1/2 px-4 py-5 sm:pl-6">
+                  <Bar className="h-4 w-16" />
+                </th>
+                <th className="w-1/6 px-3 py-5">
+                  <Bar className="h-4 w-14" />
+                </th>
+                <th className="w-1/6 px-3 py-5">
+                  <Bar className="h-4 w-12" />
+                </th>
+                <th className="w-1/6 px-3 py-5" />
+              </tr>
+            </thead>
+            <tbody className="bg-white">
+              {Array.from({ length: PRACTICE_ROWS }).map((_, i) => (
+                <tr key={i} className="w-full border-b last-of-type:border-none">
+                  <td className="py-4 pl-6 pr-3">
+                    <Bar className="h-5 w-40" />
+                  </td>
+                  <td className="px-3 py-4">
+                    <Bar className="h-6 w-16 rounded-full" />
+                  </td>
+                  <td className="px-3 py-4">
+                    <Bar className="h-5 w-28" />
+                  </td>
+                  <td className="px-3 py-4">
+                    <div className="flex justify-center">
+                      <Bar className="h-8 w-20" />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Matches ExamTable: Name / Status / Duration / Questions / Open / Close / Action.
+export function ExamTableSkeleton() {
+  return (
+    <div className="mt-6 flow-root">
+      <div className="inline-block min-w-full align-middle">
+        <div className="animate-pulse shadow-md/30 rounded-lg bg-gray-50 p-2 md:pt-0">
+          {/* Mobile: cards */}
+          <div className="md:hidden">
+            {Array.from({ length: PRACTICE_ROWS }).map((_, i) => (
+              <div key={i} className="mb-2 w-full rounded-md bg-white p-4">
+                <div className="flex w-full items-center justify-between gap-2 border-b pb-4">
+                  <Bar className="h-6 w-1/2" />
+                </div>
+                <div className="flex w-full items-center justify-between pt-4">
+                  <div className="space-y-2">
+                    <Bar className="h-4 w-24" />
+                    <Bar className="h-4 w-20" />
+                    <Bar className="h-4 w-36" />
+                    <Bar className="h-4 w-36" />
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <Bar className="h-6 w-16 rounded-full" />
+                    <Bar className="h-8 w-20" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: table */}
+          <table className="hidden min-w-full text-gray-900 md:table table-fixed">
+            <thead className="rounded-lg text-left text-sm font-normal">
+              <tr>
+                <th className="w-1/4 px-4 py-5 sm:pl-6">
+                  <Bar className="h-4 w-16" />
+                </th>
+                <th className="w-1/6 px-3 py-5">
+                  <Bar className="h-4 w-14" />
+                </th>
+                <th className="w-1/8 px-3 py-5">
+                  <Bar className="h-4 w-16" />
+                </th>
+                <th className="w-1/10 px-3 py-5">
+                  <Bar className="h-4 w-16" />
+                </th>
+                <th className="w-1/6 px-3 py-5">
+                  <Bar className="h-4 w-20" />
+                </th>
+                <th className="w-1/6 px-3 py-5">
+                  <Bar className="h-4 w-20" />
+                </th>
+                <th className="w-28 px-3 py-5" />
+              </tr>
+            </thead>
+            <tbody className="bg-white">
+              {Array.from({ length: PRACTICE_ROWS }).map((_, i) => (
+                <tr key={i} className="w-full border-b last-of-type:border-none">
+                  <td className="py-4 pl-6 pr-3">
+                    <Bar className="h-5 w-32" />
+                  </td>
+                  <td className="px-3 py-4">
+                    <Bar className="h-6 w-16 rounded-full" />
+                  </td>
+                  <td className="px-3 py-4">
+                    <Bar className="h-5 w-16" />
+                  </td>
+                  <td className="px-3 py-4">
+                    <Bar className="h-5 w-8" />
+                  </td>
+                  <td className="px-3 py-4">
+                    <Bar className="h-5 w-24" />
+                  </td>
+                  <td className="px-3 py-4">
+                    <Bar className="h-5 w-24" />
+                  </td>
+                  <td className="px-3 py-4">
+                    <div className="flex justify-center">
+                      <Bar className="h-8 w-20" />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}

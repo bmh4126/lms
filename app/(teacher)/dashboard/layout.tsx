@@ -7,17 +7,17 @@ const links: NavLink[] = [
   {
     name: "Dashboard",
     href: "/dashboard",
-    icon: "dashboard",
+    icon: "homeIcon",
   },
   {
     name: "Analysis",
     href: "/dashboard/analysis",
-    icon: "analysis",
+    icon: "chartBarIcon",
   },
   {
     name: "Report",
     href: "/dashboard/report",
-    icon: "report",
+    icon: "newspaperIcon",
   },
 ];
 
