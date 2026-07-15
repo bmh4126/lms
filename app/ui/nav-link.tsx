@@ -22,6 +22,10 @@ export default function NavLinks({ links }: { links: NavLink[] }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openLink]);
 
+  const activeHref = links
+    .filter((link) => pathname.startsWith(link.href))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
+
   return (
     <>
       {links.map((link) => {
@@ -44,11 +48,7 @@ export default function NavLinks({ links }: { links: NavLink[] }) {
               className={clsx(
                 "shadow-md/30 flex h-[48px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3",
                 {
-                  "text-blue-600 bg-blue-100":
-                    pathname === link.href ||
-                    (link.options &&
-                      link.options.filter((option) => option.href === pathname)
-                        .length),
+                  "text-blue-600 bg-blue-100": link.href === activeHref,
                 },
               )}
             >
