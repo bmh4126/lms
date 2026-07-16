@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import Link from "next/link";
+import { Assessment } from "../lib/definition";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
@@ -20,14 +21,13 @@ export function Button({ children, className, ...rest }: ButtonProps) {
 }
 
 export function PracticeActionButton({
-  status,
-  id,
-  type,
+  assessment,
 }: {
-  status: "Done" | "In Progress" | "Dued" | "Before Open";
-  id: string;
-  type: string;
-}) {
+  assessment: Assessment;
+  }) {
+  const type = assessment.type;
+  const status = assessment.status;
+  const id = assessment.id;
   const getLabel = (status: string): [string, string] => {
     switch (status) {
       case "Before Open":
@@ -51,7 +51,7 @@ export function PracticeActionButton({
     }
   };
   const [label, styles] = getLabel(status);
-  const hrefLink = label === "Review" ? `review/${id}` : `${type}/${id}`;
+  const hrefLink = label === "Review" ? `/review` : ``;
   return (
     <>
       {label === "Locked" ? (
@@ -65,7 +65,7 @@ export function PracticeActionButton({
           </button>
         </Link>
       ) : (
-        <Link href={`/curriculum/practice/${hrefLink}`}>
+        <Link href={`/curriculum/practice/${type}/${id}/${hrefLink}`}>
           <button
             type="button"
             className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${styles}`}

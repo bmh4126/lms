@@ -31,8 +31,8 @@ export default async function Page() {
   const studentClass = await fetchStudentClassById(studentId);
   const subject_id_promise = await sql`
   SELECT id, chapter_count
-  FROM subjects
-  WHERE grade = ${studentClass.grade} AND
+  FROM curriculum.subjects
+  WHERE grade_level = ${studentClass.grade_level} AND
     name = 'Mathematics'
   `
   const subject_id = subject_id_promise[0].id

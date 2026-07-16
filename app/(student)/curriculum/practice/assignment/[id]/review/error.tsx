@@ -20,10 +20,10 @@ export default function Error({
   return (
     <main className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
       <div className="absolute md:top-10 md:left-70 left-5 top-45">
-        <Back href="/curriculum/" />
+        <Back href="/curriculum/practice/assignment" />
       </div>
       <h2 className="text-xl font-semibold">
-        Couldn&apos;t load the exams/assignments.
+        Couldn&apos;t load the assignments.
       </h2>
       <p className="text-gray-500">Something went wrong while fetching data.</p>
       <button

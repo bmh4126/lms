@@ -88,6 +88,12 @@ export type User = {
   grade?: number;
 };
 
+export type Class = {
+  id: string;
+  label: string;
+  grade_level: number;
+}
+
 export type StudentTable = {
   id: string;
   name: string;
@@ -100,7 +106,8 @@ export type StudentForm = {
   id: string;
   name: string;
   email: string;
-  grade: number;
+  class: string;
+  grade_level: number;
 };
 
 export type TeacherTable = {
@@ -114,32 +121,28 @@ export type TeacherForm = {
   id: string;
   name: string;
   email: string;
+  class: string[];
 };
 
-export type Assignment = {
+export type Assessment = {
   id: string;
   name: string;
-  duration: string;
-  questions: number;
-  status: "In Progress" | "Done" | "Dued";
-  deadline: string;
-  score?: string; // e.g. "9/10" — only when status === "done"
-};
-
-export type AssignmentRow = {
-  id: string;
-  name: string;
-  close: Date;
-  status: "In Progress" | "Dued" | "Done";
-  score?: string;
-};
-
-export type ExamRow = {
-  id: string;
-  name: string;
-  duration: string;
   question_count: number;
   status: "Before Open" | "In Progress" | "Done" | "Dued";
-  start: Date;
+  open: Date;
+  close: Date;
+  type: "assignment" | "exam";
   score?: string;
 };
+
+export type Question = {
+  id: string;
+  label: string;
+  options: Option[];
+}
+
+export type Option = {
+  id: string;
+  label: string;
+  is_correct: boolean;
+}

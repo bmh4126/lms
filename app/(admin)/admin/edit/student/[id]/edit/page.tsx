@@ -1,4 +1,4 @@
-import { fetchUserById, fetchGrades } from "@/app/lib/data/admin/data";
+import { fetchStudentById, fetchAllCurentClasses } from "@/app/lib/data/admin/data";
 import Back from "@/app/ui/back";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -12,9 +12,9 @@ export const metadata: Metadata = {
 export default async function Page(prop: { params: Promise<{ id: string }> }) {
   const params = await prop.params;
   const id = params.id;
-  const [student, grades] = await Promise.all([
-    fetchUserById(id),
-    fetchGrades(),
+  const [student, classes] = await Promise.all([
+    fetchStudentById(id),
+    fetchAllCurentClasses(),
   ]);
 
   if (!student) notFound();
@@ -29,7 +29,7 @@ export default async function Page(prop: { params: Promise<{ id: string }> }) {
           Edit student {student.name}
         </h1>
       </div>
-      <Form student={student} grades={grades} />
+      <Form student={student} classes={classes} />
     </main>
   );
 }

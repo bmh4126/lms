@@ -1,17 +1,17 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { ExamRow } from "@/app/lib/definition";
+import { Assessment } from "@/app/lib/definition";
 import { PracticeActionButton } from "@/app/ui/button";
 import { StatusCell } from "../table-component";
 import Pagination from "@/app/ui/paginations";
 import { LocalDateTime } from "@/app/ui/local-datetime";
 import { FillerRows } from "@/app/ui/table-filler";
-import { closeTime, compareExams, formatDuration } from "@/app/lib/utils";
+import { compareExams, formatDuration } from "@/app/lib/utils";
 
 const PAGE_SIZE = 6;
 
-export default function ExamTable({ exams }: { exams: ExamRow[] }) {
+export default function ExamTable({ exams }: { exams: Assessment[] }) {
   const searchParams = useSearchParams();
   const sorted = [...exams].sort(compareExams);
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
@@ -39,22 +39,19 @@ export default function ExamTable({ exams }: { exams: ExamRow[] }) {
                 </div>
                 <div className="flex w-full items-center justify-between pt-4">
                   <div className="text-sm text-gray-500">
-                    <p>{formatDuration(e.duration)}</p>
+                    <p>{formatDuration(e.open, e.close)}</p>
                     <p>{e.question_count} questions</p>
                     <p>
-                      Opens: <LocalDateTime date={e.start} />
+                      Opens: <LocalDateTime date={e.open} />
                     </p>
                     <p>
-                      Closes:{" "}
-                      <LocalDateTime date={closeTime(e.start, e.duration)} />
+                      Closes: <LocalDateTime date={e.close} />
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <StatusCell status={e.status} score={e.score} />
+                    <StatusCell assessment={e} />
                     <PracticeActionButton
-                      status={e.status}
-                      id={e.id}
-                      type="exam"
+                      assessment={e}
                     />
                   </div>
                 </div>
@@ -99,23 +96,21 @@ export default function ExamTable({ exams }: { exams: ExamRow[] }) {
                     <p className="min-w-0 break-words font-medium">{e.name}</p>
                   </td>
                   <td className="px-3 py-3">
-                    <StatusCell status={e.status} score={e.score} />
+                    <StatusCell assessment={e} />
                   </td>
                   <td className="break-words px-3 py-3">
-                    {formatDuration(e.duration)}
+                    {formatDuration(e.open, e.close)}
                   </td>
                   <td className="break-words px-3 py-3">{e.question_count}</td>
                   <td className="px-3 py-3">
-                    <LocalDateTime date={e.start} />
+                    <LocalDateTime date={e.open} />
                   </td>
                   <td className="px-3 py-3">
-                    <LocalDateTime date={closeTime(e.start, e.duration)} />
+                    <LocalDateTime date={e.close} />
                   </td>
                   <td className="px-3 py-3 text-center">
                     <PracticeActionButton
-                      status={e.status}
-                      id={e.id}
-                      type="exam"
+                      assessment={e}
                     />
                   </td>
                 </tr>

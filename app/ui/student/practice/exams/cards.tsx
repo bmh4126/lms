@@ -28,7 +28,7 @@ export default async function Page({
     { title: "Dued", value: totalDued, type: "documentDuplicateIcon" },
     {
       title: "Average Score",
-      value: avgScore === "-1" ? "-" : avgScore + "/10",
+      value: avgScore === "-1" ? "-" : avgScore + "%",
       type: "chartBarIcon",
     },
   ];

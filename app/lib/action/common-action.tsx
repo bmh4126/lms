@@ -44,7 +44,7 @@ export async function getUser(email: string) {
       role,
       email, 
       password
-    FROM users
+    FROM school.users
     WHERE email = ${email}`;
     return user[0];
   } catch (error) {

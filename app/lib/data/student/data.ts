@@ -6,17 +6,12 @@ import {
   TopicListItem,
   LessonListItem,
   StudentTable,
-  AssignmentRow,
-  ExamRow,
+  Assessment,
+  Question,
 } from "../../definition";
 import { z } from "zod";
 import { sql } from "../../db";
-import {
-  closeTime,
-  passedCloseTime,
-  passedOpenTime,
-  compareExams,
-} from "../../utils";
+import { passedTime, compareExams } from "../../utils";
 
 // The single database connection for the whole app.
 // Only this module reads the connection string from the environment — every
@@ -31,10 +26,10 @@ export async function fetchStudentClassById(student_id: string) {
   try {
     const data = await sql`
     SELECT 
-    c.grade AS grade,
+    c.grade_level AS grade_level,
     c.id AS class_id
-    FROM enrollments e
-    JOIN classes c ON c.id = e.class_id
+    FROM school.enrollments e
+    JOIN school.classes c ON c.id = e.class_id
     WHERE e.student_id = ${student_id}
     `;
     return data[0];
@@ -48,7 +43,7 @@ export async function fetchHomeCardData(subject_id: string) {
   try {
     const totalChapterPromise = await sql`
     SELECT chapter_count
-    FROM subjects
+    FROM curriculum.subjects
     WHERE id = ${subject_id}
   `;
     const data = await Promise.all([totalChapterPromise]);
@@ -78,7 +73,7 @@ export async function fetchChaptersBySubject(subject_id: string) {
     // `;
     return sql<ChapterListItem[]>`
     SELECT id, name, position, topic_count
-    FROM chapters
+    FROM curriculum.chapters
     WHERE subject_id = ${validatedId.data.subject_id}
     ORDER BY position
   `;
@@ -106,7 +101,7 @@ export async function fetchTopicsByChapter(chapter_id: string) {
       name,
       position,
       lesson_count
-    FROM topics
+    FROM curriculum.topics
     WHERE chapter_id = ${validatedId.data.chapter_id}
     ORDER BY position
   `;
@@ -132,7 +127,7 @@ export async function fetchLessonsByTopic(topic_id: string) {
       id,
       name,
       position
-    FROM lessons
+    FROM curriculum.lessons
     WHERE topic_id = ${validatedId.data.topic_id}
     ORDER BY position
   `;
@@ -160,7 +155,7 @@ export async function fetchLessonById(id: string) {
     name,
     video_url,
     position
-  FROM lessons
+  FROM curriculum.lessons
   WHERE id = ${validatedId.data.id}
   LIMIT 1
   `;
@@ -176,46 +171,51 @@ export async function fetchAssignmentRowsByClass(
   studentId: string,
 ) {
   try {
-    type AssignmentQueryRow = Omit<AssignmentRow, "status">;
-    const data = await sql<AssignmentQueryRow[]>`
+    type AssignmentRow = Omit<Assessment, "status">;
+    const data = await sql<AssignmentRow[]>`
     SELECT
     a.id,
     a.name,
-    a.deadline AS close,
+    a.open,
+    a.close,
+    a.question_count,
+    a.type,
     s.score
-    FROM assignments a
-    LEFT JOIN submissions s ON a.id = s.assignment_id AND s.user_id = ${studentId}
-    WHERE a.class_id = ${class_id}
-    ORDER BY a.deadline DESC
+    FROM practice.assessments a
+    LEFT JOIN practice.submissions s ON a.id = s.assessment_id AND s.user_id = ${studentId}
+    WHERE a.type = 'assignment'
     `;
-    const tableData: AssignmentRow[] = data.map((d) => {
-      if (!passedCloseTime(d.close) && !d.score)
+    const tableDataBuild: Assessment[] = data.map((d) => {
+      if (!passedTime(d.open)) return { ...d, status: "Before Open" };
+      if (passedTime(d.open) && !passedTime(d.close) && !d.score)
         return { ...d, status: "In Progress" };
-      if (passedCloseTime(d.close) && !d.score) return { ...d, status: "Dued" };
+      if (passedTime(d.close) && !d.score) return { ...d, status: "Dued" };
       return { ...d, status: "Done" };
     });
+    const tableData = tableDataBuild.sort(compareExams);
     const totalAssignment = Number(data.length);
     const totalInProgress = Number(
       data
-        .map((d) => !passedCloseTime(d.close) && !d.score)
+        .map((d) => !passedTime(d.close) && !d.score)
         .filter((d) => d === true).length,
     );
     const totalDued = Number(
-      data
-        .map((d) => passedCloseTime(d.close) && !d.score)
-        .filter((d) => d === true).length,
+      data.map((d) => passedTime(d.close) && !d.score).filter((d) => d === true)
+        .length,
     );
-    const inConsideration = data.filter(
-      (d) => passedCloseTime(d.close) || d.score,
+    const inConsideration = data.filter((d) => passedTime(d.close) || d.score);
+    const considertationAmount: number = inConsideration.reduce(
+      (acc, d) => acc + d.question_count,
+      0,
     );
-    const considertationAmount = inConsideration.length;
     const avgScore = !considertationAmount
       ? "-1"
       : Number(
-          inConsideration
+          (inConsideration
             .map((d) => (d.score ? parseInt(d.score) : 0))
             .reduce((acc, score) => acc + score, 0) /
-            Number(considertationAmount),
+            considertationAmount) *
+            100,
         )
           .toFixed(2)
           .toString();
@@ -231,66 +231,51 @@ export async function fetchExamRowsByStudentId(
   studentId: string,
 ) {
   try {
-    type ExamQueryRow = Omit<ExamRow, "status">;
-    const data = await sql<ExamQueryRow[]>`
+    type ExamRow = Omit<Assessment, "status">;
+    const data = await sql<ExamRow[]>`
     SELECT
-    e.id,
-    e.name,
-    e.duration,
-    e.question_count,
-    e.start,
-    s.score AS score
-    FROM exams e
-    LEFT JOIN submissions s ON e.id = s.exam_id AND s.user_id = ${studentId}
-    WHERE e.class_id = ${class_id}
-    ORDER BY e.start DESC
+    a.id,
+    a.name,
+    a.question_count,
+    a.open,
+    a.close,
+    a.type,
+    s.score
+    FROM practice.assessments a
+    LEFT JOIN practice.submissions s ON a.id = s.assessment_id AND s.user_id = ${studentId}
+    WHERE a.type = 'exam'
     `;
-    const tableDataBuild: ExamRow[] = data.map((d) => {
-      if (!passedOpenTime(d.start)) return { ...d, status: "Before Open" };
-      if (
-        passedOpenTime(d.start) &&
-        !passedCloseTime(closeTime(d.start, d.duration)) &&
-        !d.score
-      )
+    const tableDataBuild: Assessment[] = data.map((d) => {
+      if (!passedTime(d.open)) return { ...d, status: "Before Open" };
+      if (passedTime(d.open) && !passedTime(d.close) && !d.score)
         return { ...d, status: "In Progress" };
-      if (passedCloseTime(closeTime(d.start, d.duration)) && !d.score)
-        return { ...d, status: "Dued" };
+      if (passedTime(d.close) && !d.score) return { ...d, status: "Dued" };
       return { ...d, status: "Done" };
     });
     const tableData = tableDataBuild.sort(compareExams);
     const totalExams = Number(data.length);
-    const upcoming = Number(
-      data.filter((d) => !passedOpenTime(d.start)).length,
-    );
+    const upcoming = Number(data.filter((d) => !passedTime(d.open)).length);
     const totalInProgress = Number(
-      data.filter(
-        (d) =>
-          passedOpenTime(d.start) &&
-          !passedCloseTime(closeTime(d.start, d.duration)) &&
-          !d.score,
-      ).length,
+      data.filter((d) => passedTime(d.open) && !passedTime(d.close) && !d.score)
+        .length,
     );
-    const completed = Number(
-      data.filter(
-        (d) => d.score,
-      ).length,
-    );
-    const inConsideration = data.filter(
-      (d) => passedCloseTime(closeTime(d.start, d.duration)) || d.score,
-    );
+    const completed = Number(data.filter((d) => d.score).length);
+    const inConsideration = data.filter((d) => passedTime(d.close) || d.score);
     const totalDued = Number(
-      data.filter(
-        (d) => passedCloseTime(closeTime(d.start, d.duration)) && !d.score,
-      ).length,
+      data.filter((d) => passedTime(d.close) && !d.score).length,
     );
-    const considertationAmount = inConsideration.length;
+    const considertationAmount: number = inConsideration.reduce(
+      (acc, d) => acc + d.question_count,
+      0,
+    );
     const avgScore = !considertationAmount
       ? Number(-1).toString()
       : Number(
-          inConsideration
+          (inConsideration
             .map((d) => (d.score ? parseInt(d.score) : 0))
             .reduce((acc, score) => acc + score, 0) /
-            Number(inConsideration.length),
+            considertationAmount) *
+            100,
         )
           .toFixed(2)
           .toString();
@@ -309,29 +294,15 @@ export async function fetchExamRowsByStudentId(
   }
 }
 
-export async function fetchKindById(id: string) {
-  try {
-    const data = await sql`
-    SELECT COUNT(*)
-    FROM submissions
-    WHERE assignment_id = ${id}
-    `;
-    return data[0].count ? 'assignment':'exam';
-  } catch (e) {
-    console.log("Database error: ", e);
-    throw new Error("Cannot fetch the kind of this exercise.");
-  }
-}
-
 const ITEMS_PER_PAGE = 6;
 
 export async function fetchStudentsPages(query: string) {
   try {
     const data = await sql`
     SELECT COUNT(*)
-    FROM enrollments e
-    JOIN users u ON u.id = e.student_id
-    JOIN classes c on c.id = e.class_id
+    FROM school.enrollments e
+    JOIN school.users u ON u.id = e.student_id
+    JOIN school.classes c on c.id = e.class_id
     WHERE
       u.name ILIKE ${`%${query}%`} OR
       u.email ILIKE ${`%${query}%`} OR
@@ -356,18 +327,82 @@ export async function fetchFilteredStudent(query: string, currentPage: number) {
       c.label,
       u.role,
       u.created_at
-    FROM enrollments e
-    JOIN users u ON u.id = e.student_id
-    JOIN classes c ON c.id = e.class_id
+    FROM school.enrollments e
+    JOIN school.users u ON u.id = e.student_id
+    JOIN school.classes c ON c.id = e.class_id
     WHERE
       u.name ILIKE ${`%${query}%`} OR
       u.email ILIKE ${`%${query}%`} OR
       c.label::text ILIKE ${`%${query}%`}
-      ORDER BY c.grade ASC, u.name ASC
+      ORDER BY c.grade_level ASC, u.name ASC
       LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
     `;
   } catch (e) {
     console.log("Database error: ", e);
     throw new Error("Cannot fetch filterd students.");
+  }
+}
+
+export async function fetchQuestionsById(assessment_id: string) {
+  try {
+    const data = await sql<Question[]>`
+    SELECT
+      q.id,
+      q.label,
+      (
+        SELECT jsonb_agg(
+          jsonb_build_object('id', o.id, 'label', o.label, 'is_correct', o.is_correct)
+          ORDER BY o.order_index
+        )
+        FROM practice.question_options o
+        WHERE o.question_id = q.id
+      ) AS options
+    FROM practice.questions q
+    WHERE assessment_id = ${assessment_id}
+    ORDER BY q.position
+    `;
+    return data;
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot fetch questions for such AssessmentId.");
+  }
+}
+
+export async function fetchAnswersAndScoreForReview(
+  student_id: string,
+  assessment_id: string,
+) {
+  try {
+    const data = await sql`
+    SELECT 
+      a.answer,
+      s.score
+    FROM practice.submissions s
+    JOIN practice.submission_answer a ON a.submission_id = s.id
+    JOIN practice.questions q ON q.id = a.question_id
+    WHERE s.assessment_id = ${assessment_id} AND
+      s.user_id = ${student_id}
+    ORDER BY q.position
+    `;
+    const answers = data.map((d) => d.answer as string) ?? [];
+    const score = Number(data[0].score) ?? 0;
+    return { answers, score };
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot fetch options for review.");
+  }
+}
+
+export async function fetchAssessmentById(assessment_id: string) {
+  try {
+    const data = await sql`
+    SELECT name
+    FROM practice.assessments
+    WHERE id = ${assessment_id}
+    `;
+    return data[0]?.name ?? "Unknown";
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot fetch assessment for such ID.");
   }
 }

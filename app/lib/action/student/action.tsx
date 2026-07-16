@@ -13,7 +13,7 @@ const formSchema = z.object({
   name: z.string().min(1),
   email: z.email().min(1),
   password: z.string(),
-  grade: z.coerce.number().min(1).max(6), //Grade 1-6
+  class_id: z.uuid(),
   created_at: z.string(),
 });
 
@@ -32,7 +32,7 @@ export async function createStudent(
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
-    grade: formData.get("grade"),
+    class_id: formData.get("class_id"),
   });
   if (!validatedFields.success) {
     return {
@@ -42,34 +42,34 @@ export async function createStudent(
   }
   try {
     const id = randomUUID();
-    const { email, name, password, grade } = validatedFields.data;
+    const { email, name, password, class_id } = validatedFields.data;
     const hash_password = (await b.hash(password, 10)).toString();
     await sql.begin(async (tx) => {
       await tx`
-        INSERT INTO users (id, email, password, name, role)
+        INSERT INTO school.users (id, email, password, name, role)
         VALUES (${id}, ${email}, ${hash_password}, ${name}, 'student')
           `;
       await tx`
-        INSERT INTO enrollment (user_id, grade)
-        VALUES (${id}, ${grade})
+        INSERT INTO school.enrollments (student_id, class_id)
+        VALUES (${id}, ${class_id})
         `;
     });
-    revalidatePath("/admin/student");
+    revalidatePath("/admin/edit/student");
   } catch (e) {
     console.log("Database error: Create student");
     return { message: "Cannot add this student. Please retry" };
   }
-  redirect("/admin/student");
+  redirect("/admin/edit/student");
 }
 
 export async function deleteStudent(id: string) {
   try {
     await sql`
-    DELETE FROM users
+    DELETE FROM school.users
     WHERE id = ${id}
     `;
 
-    revalidatePath("/admin/student");
+    revalidatePath("/admin/edit/student");
   } catch (e) {
     console.log("Database error", e);
     throw new Error("Cannot delete this student. Please retry.");
@@ -85,7 +85,7 @@ export async function updateStudent(
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
-    grade: formData.get("grade"),
+    class_id: formData.get("class_id"),
   });
   if (!validatedFields.success) {
     return {
@@ -94,12 +94,12 @@ export async function updateStudent(
     };
   }
 
-  const { name, email, grade } = validatedFields.data;
+  const { name, email, class_id } = validatedFields.data;
   const password = { password: formData.get("password") };
   try {
     await sql.begin(async (tx) => {
-      await tx`UPDATE users SET name = ${name}, email = ${email} WHERE id = ${id}`;
-      await tx`UPDATE enrollment SET grade = ${grade} WHERE user_id = ${id}`;
+      await tx`UPDATE school.users SET name = ${name}, email = ${email} WHERE id = ${id}`;
+      await tx`UPDATE school.enrollments SET class_id = ${class_id} WHERE student_id = ${id}`;
       if (password.password) {
         const validatedPassword = z
           .object({ password: z.string().min(8) })
@@ -113,13 +113,13 @@ export async function updateStudent(
         const hash_password = (
           await b.hash(validatedPassword.data.password, 10)
         ).toString();
-        await tx`UPDATE users SET password = ${hash_password} WHERE id = ${id}`;
+        await tx`UPDATE school.users SET password = ${hash_password} WHERE id = ${id}`;
       }
     });
-    revalidatePath("/admin/student");
+    revalidatePath("/admin/edit/student");
   } catch (e) {
     console.log("Database error: Update student");
     return { message: "Cannot update this student. Please retry" };
   }
-  redirect("/admin/student");
+  redirect("/admin/edit/student");
 }

@@ -1,20 +1,21 @@
 "use server";
 
 import { sql } from "../../db";
+import { Class, StudentForm } from "../../definition";
 
 export async function fetchCardData() {
   const totalClassesPromise = await sql`
     SELECT COUNT(*)
-    FROM classes
+    FROM school.classes
   `;
   const totalStudentsPromise = await sql`
     SELECT COUNT(*)
-    FROM users
+    FROM school.users
     WHERE role = 'student'
   `;
   const totalTeachersPromise = await sql`
     SELECT COUNT(*)
-    FROM users
+    FROM school.users
     WHERE role = 'teacher'
   `;
   const data = await Promise.all([
@@ -28,29 +29,38 @@ export async function fetchCardData() {
   return { totalClasses, totalStudents, totalTeachers };
 }
 
-export async function fetchUserById(id: string) {
-  // try {
-  //   const data = await sql<UserForm[]>`
-  // SELECT
-  //   u.id AS id,
-  //   u.name AS name,
-  //   u.email AS email,
-  //   e.grade AS grade,
-  //   u.created_at AS created_at
-  // FROM users u
-  // JOIN enrollment e ON u.id = e.user_id
-  // WHERE u.id = ${id}
-  // `;
-  //   return data[0];
-  // } catch (e) {
-  //   console.log("Database error", e);
-  //   throw new Error("Cannot fetch user with such ID.");
-  // }
+export async function fetchStudentById(id: string) {
+  try {
+    const data = await sql<StudentForm[]>`
+  SELECT
+    u.id,
+    u.name,
+    u.email,
+    c.grade_level,
+    u.created_at,
+    c.label
+  FROM school.users u
+  JOIN school.enrollments e ON u.id = e.student_id
+  JOIN school.classes c ON c.id = e.class_id
+  WHERE u.id = ${id}
+  `;
+    return data[0];
+  } catch (e) {
+    console.log("Database error", e);
+    throw new Error("Cannot fetch user with such ID.");
+  }
 }
 
-export async function fetchGrades() {
+export async function fetchAllCurentClasses() {
   try {
-    return await sql<{ position: number }[]>`SELECT position FROM grades ORDER BY position ASC`;
+    return await sql<Class[]>`
+    SELECT
+      id,
+      label,
+      grade_level
+    FROM school.classes
+    ORDER BY grade_level ASC, label ASC
+    `;
   } catch (e) {
     console.log("Database error", e);
     throw new Error("Cannot fetch all grades.");

@@ -1,4 +1,4 @@
-import { ExamRow } from "./definition";
+import { Assessment } from "./definition";
 
 export const generatePagination = (currentPage: number, totalPages: number) => {
   // If the total number of pages is 7 or less,
@@ -85,8 +85,8 @@ export const formatDateToTime = (dateStr: Date, locale: string = "en-US") => {
 const displayPlural = (n: number, label: string) =>
   n ? n.toString() + " " + label + (n > 1 ? "s " : " ") : "";
 
-export const formatDuration = (duration: string) => {
-  const parsedDuration = parseInt(duration);
+export const formatDuration = (open: Date, close: Date) => {
+  const parsedDuration = MstoMinute(close.getTime() - open.getTime());
   const minutes = parsedDuration % 60;
   const parsedDurationHours = (parsedDuration - minutes) / 60;
   const hours = parsedDurationHours % 24;
@@ -104,23 +104,15 @@ export const formatDuration = (duration: string) => {
   );
 };
 
-export const durationToMs = (duration: string) =>
-  parseInt(duration) * 60 * 1000;
+export const MstoMinute = (duration: number) => duration / 60 / 1000;
 
-export const closeTime = (start: Date, duration: string) =>
-  new Date(start.getTime() + durationToMs(duration));
-
-export const passedCloseTime = (close:Date) =>
-  close.getTime() < Date.now();
-
-export const passedOpenTime = (start: Date) =>
-  start.getTime() < Date.now();
+export const passedTime = (point: Date) => point.getTime() < Date.now();
 
 // Ordering:
 //  1) "Before Open" exams come first, most upcoming first (ascending start:
 //     among future starts the smallest start - now is the earliest start).
 //  2) All other exams follow, ordered by start descending (newest first).
-export const compareExams = (a: ExamRow, b: ExamRow) => {
+export const compareExams = (a: Assessment, b: Assessment) => {
   const aBeforeOpen = a.status === "Before Open";
   const bBeforeOpen = b.status === "Before Open";
 
@@ -128,8 +120,8 @@ export const compareExams = (a: ExamRow, b: ExamRow) => {
   if (aBeforeOpen !== bBeforeOpen) return aBeforeOpen ? -1 : 1;
 
   // Within Before Open: soonest to open first
-  if (aBeforeOpen) return a.start.getTime() - b.start.getTime();
+  if (aBeforeOpen) return a.open.getTime() - b.open.getTime();
 
   // Everyone else: most recent first
-  return b.start.getTime() - a.start.getTime();
+  return b.open.getTime() - a.open.getTime();
 };

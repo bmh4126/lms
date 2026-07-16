@@ -46,6 +46,40 @@ export async function CardsSkeleton({
   );
 }
 
+// One placeholder question: a prompt line + a 2-column grid of option bars.
+function ReviewQuestionSkeleton() {
+  return (
+    <div className="mb-6 rounded-lg bg-white p-4 shadow-md/30">
+      <div className="mb-3 h-5 w-2/3 rounded bg-gray-200" />
+      <div className="grid gap-4 sm:grid-cols-2">
+        {Array.from({ length: 4 }, (_, i) => (
+          <div key={i} className="h-12 rounded-md bg-gray-100" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Route-level fallback for the review page. Mirrors the real layout — Back +
+// centered title, the score banner, then a few question blocks — so the swap to
+// the loaded page is seamless.
+export function ReviewSkeleton({ questions = 3 }: { questions?: number }) {
+  return (
+    <div className={`${shimmer} relative overflow-hidden`}>
+      <div className="relative mb-4 flex items-center">
+        <div className="h-10 w-24 rounded-xl bg-gray-200" />
+        <div className="absolute left-1/2 h-8 w-48 -translate-x-1/2 rounded bg-gray-200" />
+      </div>
+      <div className="mb-6 h-24 rounded-lg border-2 border-gray-100 bg-gray-50" />
+      <div className="mt-4">
+        {Array.from({ length: questions }, (_, i) => (
+          <ReviewQuestionSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function VideoSkeleton() {
   return (
     <div

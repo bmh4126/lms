@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { PracticeActionButton } from "@/app/ui/button";
 import { StatusCell } from "../table-component";
-import { AssignmentRow } from "@/app/lib/definition";
+import { Assessment } from "@/app/lib/definition";
 import Pagination from "@/app/ui/paginations";
 import { LocalDateTime } from "@/app/ui/local-datetime";
 import { FillerRows } from "@/app/ui/table-filler";
@@ -13,7 +13,7 @@ const PAGE_SIZE = 6;
 export default function AssignmentTable({
   assignments,
 }: {
-  assignments: AssignmentRow[];
+  assignments: Assessment[];
 }) {
   const searchParams = useSearchParams();
   const totalPages = Math.max(1, Math.ceil(assignments.length / PAGE_SIZE));
@@ -41,15 +41,13 @@ export default function AssignmentTable({
                 </div>
                 <div className="flex w-full items-center justify-between pt-4">
                   <div className="text-sm text-gray-500">
-                    <p>Due: <LocalDateTime date={a.close} /></p>
+                    <p>
+                      Due: <LocalDateTime date={a.close} />
+                    </p>
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <StatusCell status={a.status} score={a.score} />
-                    <PracticeActionButton
-                      status={a.status}
-                      id={a.id}
-                      type="exam"
-                    />
+                    <StatusCell assessment={a} />
+                    <PracticeActionButton assessment={a} />
                   </div>
                 </div>
               </div>
@@ -60,16 +58,19 @@ export default function AssignmentTable({
           <table className="hidden min-w-full text-gray-900 md:table table-fixed">
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
-                <th scope="col" className="w-1/2 px-4 py-5 font-medium sm:pl-6">
+                <th scope="col" className="w-1/3 px-4 py-5 font-medium sm:pl-6">
                   Name
                 </th>
                 <th scope="col" className="w-1/6 px-3 py-5 font-medium">
                   Status
                 </th>
                 <th scope="col" className="w-1/6 px-3 py-5 font-medium">
-                  Due
+                  Open
                 </th>
                 <th scope="col" className="w-1/6 px-3 py-5 font-medium">
+                  Close
+                </th>
+                <th scope="col" className="w-28 px-3 py-5 font-medium">
                   <span className="sr-only">Action</span>
                 </th>
               </tr>
@@ -84,24 +85,20 @@ export default function AssignmentTable({
                     <p className="min-w-0 break-words font-medium">{a.name}</p>
                   </td>
                   <td className="px-3 py-4">
-                    <StatusCell status={a.status} score={a.score} />
+                    <StatusCell assessment={a} />
                   </td>
-                  <td className="whitespace-nowrap px-3 py-4">
+                  <td className="break-words px-3 py-4">
+                    <LocalDateTime date={a.open} />
+                  </td>
+                  <td className="break-words px-3 py-4">
                     <LocalDateTime date={a.close} />
                   </td>
                   <td className="px-3 py-4 text-center">
-                    <PracticeActionButton
-                      status={a.status}
-                      id={a.id}
-                      type="assignment"
-                    />
+                    <PracticeActionButton assessment={a} />
                   </td>
                 </tr>
               ))}
-              <FillerRows
-                count={PAGE_SIZE - pageRows.length}
-                colSpan={4}
-              />
+              <FillerRows count={PAGE_SIZE - pageRows.length} colSpan={5} />
             </tbody>
           </table>
         </div>

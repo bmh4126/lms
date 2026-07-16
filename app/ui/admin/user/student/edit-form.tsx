@@ -1,17 +1,17 @@
 "use client";
 
-import { UserForm } from "@/app/lib/definition";
+import { Class, StudentForm } from "@/app/lib/definition";
 import { State } from "@/app/lib/action/common-action";
 import { updateStudent } from "@/app/lib/action/student/action";
 import { useActionState } from "react";
 import Form from "../common-form";
 
-export default function EditTeacherForm({
+export default function EditStudentForm({
   student,
-  grades,
+  classes,
 }: {
-  student: UserForm;
-  grades: { position: number }[];
+  student: StudentForm;
+  classes: Class[];
 }) {
   const initialSate: State = { message: null, errors: {} };
   const updateStudentWithId = updateStudent.bind(null, student.id); //
