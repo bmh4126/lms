@@ -1,7 +1,7 @@
 "use server";
 
 import { sql } from "../../db";
-import { Class, StudentForm } from "../../definition";
+import { Class, StudentForm, TeacherForm } from "../../definition";
 
 export async function fetchCardData() {
   const totalClassesPromise = await sql`
@@ -36,9 +36,8 @@ export async function fetchStudentById(id: string) {
     u.id,
     u.name,
     u.email,
-    c.grade_level,
     u.created_at,
-    c.label
+    c.label AS class
   FROM school.users u
   JOIN school.enrollments e ON u.id = e.student_id
   JOIN school.classes c ON c.id = e.class_id
@@ -47,7 +46,25 @@ export async function fetchStudentById(id: string) {
     return data[0];
   } catch (e) {
     console.log("Database error", e);
-    throw new Error("Cannot fetch user with such ID.");
+    throw new Error("Cannot fetch student with such ID.");
+  }
+}
+
+export async function fetchTeacherById(id: string) {
+  try {
+    const data = await sql<TeacherForm[]>`
+  SELECT
+    u.id,
+    u.name,
+    u.email
+  FROM school.users u
+  WHERE u.id = ${id} AND
+    u.role = 'teacher'
+  `;
+    return data[0] ?? { id: "Unknown", name: "Unknown", email: "Unknown" };
+  } catch (e) {
+    console.log("Database error", e);
+    throw new Error("Cannot fetch teacher with such ID.");
   }
 }
 

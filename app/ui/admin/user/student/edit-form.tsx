@@ -22,7 +22,7 @@ export default function EditStudentForm({
       action="Edit"
       state={state}
       fieldValue={student}
-      grades={grades}
+      classes={classes}
       passwordMessage="Leave blank to keep password unchanged"
       role="student"
     />

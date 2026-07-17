@@ -6,7 +6,7 @@ import { deleteStudent } from "@/app/lib/action/student/action";
 export function CreateObj({ type }: { type: string }) {
   return (
     <Link
-      href={`/admin/edit/${type}/create`}
+      href={`/admin/${type}/create`}
       className="flex h-10 items-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
     >
       <span className="hidden md:block">Add new {type}</span>{" "}
@@ -18,7 +18,7 @@ export function CreateObj({ type }: { type: string }) {
 export function UpdateObj({ type, id }: { type: string; id: string }) {
   return (
     <Link
-      href={`/admin/edit/${type}/${id}/edit`}
+      href={`/admin/${type}/${id}/edit`}
       className="rounded-md border p-2 hover:opacity-80 bg-green-500"
     >
       <PencilIcon className="w-5 stroke-white" />

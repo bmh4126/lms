@@ -10,29 +10,45 @@ const links: NavLink[] = [
     icon: "homeIcon",
   },
   {
-    name: "Edit",
+    name: "Study Materials",
     href: "#",
     icon: "bookOpenIcon",
     options: [
       {
         name: "Curriculum",
-        href: "/admin/edit/curriculum/",
+        href: "/admin/curriculum",
       },
       {
-        name: "Exams",
-        href: "/admin/edit/exam",
+        name: "Videos",
+        href: "/admin/video",
       },
       {
         name: "Resources",
-        href: "/admin/edit/resource",
+        href: "/admin/resource",
       },
+    ],
+  },
+  {
+    name: "Assessments",
+    href: "/admin/assessment",
+    icon: "bookOpenIcon",
+  },
+  {
+    name: "Users",
+    href: "#",
+    icon: "userIcon",
+    options: [
       {
         name: "Teachers",
-        href: "/admin/edit/teacher",
+        href: "/admin/teacher",
       },
       {
         name: "Students",
-        href: "/admin/edit/student",
+        href: "/admin/student",
+      },
+      {
+        name: "Classes",
+        href: "/admin/class"
       },
     ],
   },

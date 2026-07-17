@@ -9,7 +9,7 @@ import { CreateObj } from "@/app/ui/admin/buttons";
 import UsersTableSkeleton from "@/app/ui/admin/user/table-skeleton";
 
 export const metadata: Metadata = {
-  title: "Teachers",
+  title: "Teachers | Admin",
 };
 
 export default async function Page(props: {

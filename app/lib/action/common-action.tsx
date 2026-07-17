@@ -11,6 +11,7 @@ export type State = {
     email?: { errors: string[] };
     password?: { errors: string[] };
     grade?: { errors: string[] };
+    class?: { errors: string[] };
     created_at?: { errors: string[] };
   };
   message?: string | null;

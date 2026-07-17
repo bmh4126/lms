@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { sql } from "../../db";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
+import { email, z } from "zod";
 import { State } from "../common-action";
 import b from "bcrypt";
 import { randomUUID } from "crypto";
@@ -40,10 +40,10 @@ export async function createStudent(
       message: "Missing fields. Failed to add new teacher",
     };
   }
+  const id = randomUUID();
+  const { email, name, password, class_id } = validatedFields.data;
+  const hash_password = (await b.hash(password, 10)).toString();
   try {
-    const id = randomUUID();
-    const { email, name, password, class_id } = validatedFields.data;
-    const hash_password = (await b.hash(password, 10)).toString();
     await sql.begin(async (tx) => {
       await tx`
         INSERT INTO school.users (id, email, password, name, role)
@@ -54,12 +54,17 @@ export async function createStudent(
         VALUES (${id}, ${class_id})
         `;
     });
-    revalidatePath("/admin/edit/student");
+    revalidatePath("/admin/student");
   } catch (e) {
-    console.log("Database error: Create student");
-    return { message: "Cannot add this student. Please retry" };
+    console.log("Database error: ", e);
+    const message =
+      (e as Error).message ===
+      'duplicate key value violates unique constraint "users_email_key"'
+        ? `Already exists student with email ${email}`
+        : "Cannot add this student. Please retry.";
+    return { message: message };
   }
-  redirect("/admin/edit/student");
+  redirect("/admin/student");
 }
 
 export async function deleteStudent(id: string) {
@@ -69,7 +74,7 @@ export async function deleteStudent(id: string) {
     WHERE id = ${id}
     `;
 
-    revalidatePath("/admin/edit/student");
+    revalidatePath("/admin/student");
   } catch (e) {
     console.log("Database error", e);
     throw new Error("Cannot delete this student. Please retry.");
@@ -116,10 +121,15 @@ export async function updateStudent(
         await tx`UPDATE school.users SET password = ${hash_password} WHERE id = ${id}`;
       }
     });
-    revalidatePath("/admin/edit/student");
+    revalidatePath("/admin/student");
   } catch (e) {
     console.log("Database error: Update student");
-    return { message: "Cannot update this student. Please retry" };
+    const message =
+      (e as Error).message ===
+      'duplicate key value violates unique constraint "users_email_key"'
+        ? `Already exists student with email ${email}`
+        : "Cannot update this student. Please retry.";
+    return { message: message };
   }
-  redirect("/admin/edit/student");
+  redirect("/admin/student");
 }

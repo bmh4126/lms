@@ -107,7 +107,6 @@ export type StudentForm = {
   name: string;
   email: string;
   class: string;
-  grade_level: number;
 };
 
 export type TeacherTable = {
@@ -121,7 +120,6 @@ export type TeacherForm = {
   id: string;
   name: string;
   email: string;
-  class: string[];
 };
 
 export type Assessment = {

@@ -1,18 +1,12 @@
 "use client";
 
-import { UserForm } from "@/app/lib/definition";
+import { TeacherForm } from "@/app/lib/definition";
 import { State } from "@/app/lib/action/common-action";
 import { updateTeacher } from "@/app/lib/action/teacher/action";
 import { useActionState } from "react";
 import Form from "../common-form";
 
-export default function EditTeacherForm({
-  teacher,
-  grades,
-}: {
-  teacher: UserForm;
-  grades: { position: number }[];
-}) {
+export default function EditTeacherForm({ teacher }: { teacher: TeacherForm }) {
   const initialSate: State = { message: null, errors: {} };
   const updateTeacherWithId = updateTeacher.bind(null, teacher.id);
   const [state, formAction] = useActionState(updateTeacherWithId, initialSate);
@@ -22,7 +16,6 @@ export default function EditTeacherForm({
       action="Edit"
       state={state}
       fieldValue={teacher}
-      grades={grades}
       passwordMessage="Leave blank to keep password unchanged"
       role="teacher"
     />

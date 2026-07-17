@@ -9,7 +9,7 @@ import UsersTableSkeleton from "@/app/ui/admin/user/table-skeleton";
 import { fetchStudentsPages } from "@/app/lib/data/student/data";
 
 export const metadata: Metadata = {
-  title: "Students",
+  title: "Students | Admin",
 };
 
 export default async function Page(props: {

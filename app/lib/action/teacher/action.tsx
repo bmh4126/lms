@@ -9,20 +9,15 @@ import b from "bcrypt";
 import { State } from "../common-action";
 
 const formSchema = z.object({
-  userId: z.uuid(),
   name: z.string().min(1),
   email: z.email().min(1),
   password: z.string().min(8),
-  grade: z.coerce.number().min(1).max(6), //Grade 1-6
-  created_at: z.string(),
 });
 
 const UpdateSchema = formSchema.omit({
-  userId: true,
   password: true,
-  created_at: true,
 });
-const CreateSchema = formSchema.omit({ userId: true, created_at: true });
+const CreateSchema = formSchema;
 
 export async function CreateTeacher(
   prevState: State,
@@ -32,7 +27,6 @@ export async function CreateTeacher(
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
-    grade: formData.get("grade"),
   });
   if (!validatedFields.success) {
     return {
@@ -40,24 +34,23 @@ export async function CreateTeacher(
       message: "Missing fields. Failed to add new teacher",
     };
   }
+  const id = randomUUID();
+  const { email, name, password } = validatedFields.data;
+  const hash_password = (await b.hash(password, 10)).toString();
   try {
-    const id = randomUUID();
-    const { email, name, password, grade } = validatedFields.data;
-    const hash_password = (await b.hash(password, 10)).toString();
-    await sql.begin(async (tx) => {
-      await tx`
-        INSERT INTO users (id, email, password, name, role)
-        VALUES (${id}, ${email}, ${hash_password}, ${name}, 'teacher')
-          `;
-      await tx`
-        INSERT INTO enrollment (user_id, grade)
-        VALUES (${id}, ${grade})
+    await sql`
+      INSERT INTO school.users (id, email, password, name, role)
+      VALUES (${id}, ${email}, ${hash_password}, ${name}, 'teacher')
         `;
-    });
     revalidatePath("/admin/teacher");
   } catch (e) {
-    console.log("Database error: Create teacher");
-    return { message: "Cannot add this teacher. Please retry" };
+    console.log("Database error: ", e);
+    const message =
+      (e as Error).message ===
+      'duplicate key value violates unique constraint "users_email_key"'
+        ? `Already exists teacher with email ${email}`
+        : "Cannot add this teacher. Please retry.";
+    return { message: message };
   }
   redirect("/admin/teacher");
 }
@@ -65,7 +58,7 @@ export async function CreateTeacher(
 export async function deleteTeacher(id: string) {
   try {
     await sql`
-    DELETE FROM users
+    DELETE FROM school.users
     WHERE id = ${id}
     `;
 
@@ -94,12 +87,11 @@ export async function updateTeacher(
     };
   }
 
-  const { name, email, grade } = validatedFields.data;
+  const { name, email} = validatedFields.data;
   const password = { password: formData.get("password") };
   try {
     await sql.begin(async (tx) => {
-      await tx`UPDATE users SET name = ${name}, email = ${email} WHERE id = ${id}`;
-      await tx`UPDATE enrollment SET grade = ${grade} WHERE user_id = ${id}`;
+      await tx`UPDATE school.users SET name = ${name}, email = ${email} WHERE id = ${id}`;
       if (password.password) {
         const validatedPassword = z
           .object({ password: z.string().min(8) })
@@ -113,13 +105,18 @@ export async function updateTeacher(
         const hash_password = (
           await b.hash(validatedPassword.data.password, 10)
         ).toString();
-        await tx`UPDATE users SET password = ${hash_password} WHERE id = ${id}`;
+        await tx`UPDATE school.users SET password = ${hash_password} WHERE id = ${id}`;
       }
     });
     revalidatePath("/admin/teacher");
   } catch (e) {
-    console.log("Database error: Update teacher");
-    return { message: "Cannot update this teacher. Please retry" };
+    console.log("Database error: ", e);
+    const message =
+      (e as Error).message ===
+      'duplicate key value violates unique constraint "users_email_key"'
+        ? `Already exists teacher with email ${email}`
+        : "Cannot update this teacher. Please retry.";
+    return { message: message };
   }
   redirect("/admin/teacher");
 }

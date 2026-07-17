@@ -190,8 +190,8 @@ export async function fetchTeachersPages(query: string) {
   try {
     const data = await sql`
     SELECT COUNT(*)
-    FROM allocations a
-    JOIN users u ON u.id = a.teacher_id
+    FROM school.allocations a
+    JOIN school.users u ON u.id = a.teacher_id
     WHERE
       u.name ILIKE ${`%${query}%`} OR
       u.email ILIKE ${`%${query}%`}
@@ -213,8 +213,8 @@ export async function fetchFilteredTeacher(query: string, currentPage: number) {
       u.name,
       u.email,
       u.created_at
-    FROM allocations a
-    JOIN users u ON u.id = a.teacher_id
+    FROM school.allocations a
+    JOIN school.users u ON u.id = a.teacher_id
     WHERE
       u.name ILIKE ${`%${query}%`} OR
       u.email ILIKE ${`%${query}%`}
