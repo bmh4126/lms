@@ -32,19 +32,23 @@ export default function Pagination({ totalPages }: { totalPages: number }) {
 
         <div className="flex -space-x-px">
           {allPages.map((page, index) => {
-            let position: "first" | "last" | "single" | "middle" | undefined;
-
-            if (index === 0) position = "first";
-            if (index === allPages.length - 1) position = "last";
-            if (allPages.length === 1) position = "single";
-            if (page === "...") position = "middle";
+            const isMiddle = page === "...";
+            // Any border facing a "..." is a stray line (both the neighbor's
+            // edge and the "..." edge stack on the same pixel via -space-x-px),
+            // so drop it. Outer ends stay rounded.
+            const leftOpen = allPages[index - 1] === "...";
+            const rightOpen = allPages[index + 1] === "...";
 
             return (
               <PaginationNumber
                 key={`${page}-${index}`}
                 href={createPageURL(page)}
                 page={page}
-                position={position}
+                isMiddle={isMiddle}
+                isFirst={index === 0}
+                isLast={index === allPages.length - 1}
+                leftOpen={leftOpen}
+                rightOpen={rightOpen}
                 isActive={currentPage === page}
               />
             );
@@ -65,25 +69,37 @@ function PaginationNumber({
   page,
   href,
   isActive,
-  position,
+  isMiddle,
+  isFirst,
+  isLast,
+  leftOpen,
+  rightOpen,
 }: {
   page: number | string;
   href: string;
-  position?: "first" | "last" | "middle" | "single";
+  isMiddle?: boolean;
+  isFirst?: boolean;
+  isLast?: boolean;
+  leftOpen?: boolean;
+  rightOpen?: boolean;
   isActive: boolean;
 }) {
   const className = clsx(
     "flex h-10 w-10 items-center justify-center text-sm border shadow-md/30",
     {
-      "rounded-l-md": position === "first" || position === "single",
-      "rounded-r-md": position === "last" || position === "single",
+      "rounded-l-md": isFirst,
+      "rounded-r-md": isLast,
       "z-10 bg-blue-600 border-blue-600 text-white shadow-none": isActive,
-      "hover:bg-gray-100": !isActive && position !== "middle",
-      "text-gray-300": position === "middle",
+      "hover:bg-gray-100": !isActive && !isMiddle,
+      "border-transparent text-gray-300 shadow-none": isMiddle,
+      // Drop whichever border faces a "..." — the neighbor edge and the "..."
+      // edge stack on the same pixel, so removing one side clears the line.
+      "border-l-transparent": leftOpen,
+      "border-r-transparent": rightOpen,
     },
   );
 
-  return isActive || position === "middle" ? (
+  return isActive || isMiddle ? (
     <div className={className}>{page}</div>
   ) : (
     <Link href={href} className={className}>
