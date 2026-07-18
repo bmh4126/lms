@@ -1,24 +1,45 @@
-'use client';
+"use client";
 
-import { lusitana } from '@/app/ui/font';
+import { lusitana } from "@/app/ui/font";
 import {
   AtSymbolIcon,
   KeyIcon,
   ExclamationCircleIcon,
-} from '@heroicons/react/24/outline';
-import { ArrowRightIcon } from '@heroicons/react/20/solid';
-import { Button } from './button';
-import { useActionState } from 'react';
-import { authenticate } from '../lib/action/common-action';
-import { useSearchParams } from 'next/navigation';
+} from "@heroicons/react/24/outline";
+import { ArrowRightIcon } from "@heroicons/react/20/solid";
+import { Button } from "./button";
+import { useActionState } from "react";
+import { authenticate } from "../lib/action/common-action";
+import { redirect, useSearchParams } from "next/navigation";
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/'; 
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
   const [errorMessage, formAction, isPending] = useActionState(
     authenticate,
     undefined,
   );
+
+  // Testing shortcut: sign in as a seeded role@test.com / password123 account
+  // by dispatching the auth action with a prebuilt FormData (bypasses inputs).
+  function quickLogin(role: "student" | "teacher" | "admin") {
+    const fd = new FormData();
+    fd.set("email", `${role}@test.com`);
+    fd.set("password", "password123");
+    fd.set("redirectTo", callbackUrl);
+    formAction(fd);
+    const href = (role: string) => {
+      switch (role) {
+        case "student":
+          return "/curriculum";
+        case "teacher":
+          return "/dashboard";
+        case "admin":
+          return "/admin";
+      }
+    };
+    redirect(href(role) ?? "");
+  }
 
   return (
     <form action={formAction} className="space-y-3">
@@ -71,6 +92,25 @@ export default function LoginForm() {
         <Button className="mt-4 w-full" aria-disabled={isPending}>
           Log in <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
         </Button>
+
+        {/* Quick login shortcuts for testing */}
+        <div className="mt-3">
+          <p className="mb-2 text-xs text-gray-500">Quick login (testing)</p>
+          <div className="grid grid-cols-3 gap-2">
+            {(["student", "teacher", "admin"] as const).map((role) => (
+              <button
+                key={role}
+                type="button"
+                onClick={() => quickLogin(role)}
+                disabled={isPending}
+                className="rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-medium capitalize text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50"
+              >
+                {role}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="flex h-8 items-end space-x-1">
           {/* Add form errors here */}
           {errorMessage && (
