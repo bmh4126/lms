@@ -2,7 +2,10 @@ import { lusitana } from "@/app/ui/font";
 import { Metadata } from "next";
 import AssignmentCards from "@/app/ui/student/practice/assignments/cards";
 import AssignmentTable from "@/app/ui/student/practice/assignments/assignment-table";
-import { fetchAssignmentRowsByClass,fetchStudentClassById } from "@/app/lib/data/student/data";
+import {
+  fetchAssignmentRowsByClass,
+  fetchStudentClassById,
+} from "@/app/lib/data/student/data";
 import { auth } from "@/auth";
 import { notFound } from "next/navigation";
 // import Pagination from "@/app/ui/paginations";
@@ -20,7 +23,11 @@ export default async function Page() {
   if (!studentId) notFound();
   const studentClass = await fetchStudentClassById(studentId);
   const { tableData, totalAssignment, totalInProgress, totalDued, avgScore } =
-    await fetchAssignmentRowsByClass(studentClass.class_id, studentId);
+    await fetchAssignmentRowsByClass(
+      studentClass.grade_level,
+      studentClass.class_id,
+      studentId,
+    );
   return (
     <main>
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>

@@ -167,6 +167,7 @@ export async function fetchLessonById(id: string) {
 }
 
 export async function fetchAssignmentRowsByClass(
+  grade_level: number,
   class_id: string,
   studentId: string,
 ) {
@@ -182,8 +183,12 @@ export async function fetchAssignmentRowsByClass(
     a.type,
     s.score
     FROM practice.assessments a
+    LEFT JOIN practice.assessment_grade_level agl ON agl.assessment_id = a.id
+    LEFT JOIN practice.assessment_class ac ON ac.assessment_id = a.id
     LEFT JOIN practice.submissions s ON a.id = s.assessment_id AND s.user_id = ${studentId}
-    WHERE a.type = 'assignment'
+    WHERE a.type = 'assignment' AND
+      (agl.grade_level = ${grade_level} OR
+      ac.class_id = ${class_id})
     `;
     const tableDataBuild: Assessment[] = data.map((d) => {
       if (!passedTime(d.open)) return { ...d, status: "Before Open" };
@@ -227,6 +232,7 @@ export async function fetchAssignmentRowsByClass(
 }
 
 export async function fetchExamRowsByStudentId(
+  grade_level:number,
   class_id: string,
   studentId: string,
 ) {
@@ -234,16 +240,20 @@ export async function fetchExamRowsByStudentId(
     type ExamRow = Omit<Assessment, "status">;
     const data = await sql<ExamRow[]>`
     SELECT
-    a.id,
-    a.name,
-    a.question_count,
-    a.open,
-    a.close,
-    a.type,
-    s.score
+      a.id,
+      a.name,
+      a.open,
+      a.close,
+      a.question_count,
+      a.type,
+      s.score
     FROM practice.assessments a
+    LEFT JOIN practice.assessment_grade_level agl ON agl.assessment_id = a.id
+    LEFT JOIN practice.assessment_class ac ON ac.assessment_id = a.id
     LEFT JOIN practice.submissions s ON a.id = s.assessment_id AND s.user_id = ${studentId}
-    WHERE a.type = 'exam'
+    WHERE a.type = 'exam' AND
+      (agl.grade_level = ${grade_level} OR
+      ac.class_id = ${class_id})
     `;
     const tableDataBuild: Assessment[] = data.map((d) => {
       if (!passedTime(d.open)) return { ...d, status: "Before Open" };

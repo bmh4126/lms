@@ -1,4 +1,7 @@
-import { fetchExamRowsByStudentId,fetchStudentClassById } from "@/app/lib/data/student/data";
+import {
+  fetchExamRowsByStudentId,
+  fetchStudentClassById,
+} from "@/app/lib/data/student/data";
 import { lusitana } from "@/app/ui/font";
 import ExamCards from "@/app/ui/student/practice/exams/cards";
 import ExamTable from "@/app/ui/student/practice/exams/exam-table";
@@ -27,7 +30,11 @@ export default async function Page() {
     completed,
     totalDued,
     avgScore,
-  } = await fetchExamRowsByStudentId(studentClass.class_id, studentId);
+  } = await fetchExamRowsByStudentId(
+    studentClass.grade_level,
+    studentClass.class_id,
+    studentId,
+  );
   return (
     <main>
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
