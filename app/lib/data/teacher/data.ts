@@ -13,13 +13,13 @@ import z from "zod";
 export async function fetchCardData(class_id:string, subject_id:string) {
   const totalChapterPromise = await sql`
     SELECT chapter_count
-    FROM subjects
+    FROM curriculum.subjects
     WHERE id = ${subject_id}
   `;
   const totalStudentPromise = await sql`
     SELECT COUNT(*)
-    FROM classes c
-    JOIN enrollments e ON e.class_id = c.id
+    FROM school.classes c
+    JOIN school.enrollments e ON e.class_id = c.id
     WHERE c.id = ${class_id}
   `;
   const data = await Promise.all([totalChapterPromise,totalStudentPromise]);

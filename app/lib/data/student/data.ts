@@ -376,16 +376,18 @@ export async function fetchAnswersAndScoreForReview(
     const data = await sql`
     SELECT 
       a.answer,
-      s.score
-    FROM practice.submissions s
+      s.score,
+      s.user_id
+    FROM practice.assessments ass
+    LEFT JOIN practice.submissions s ON ass.id = s.assessment_id
     JOIN practice.submission_answer a ON a.submission_id = s.id
     JOIN practice.questions q ON q.id = a.question_id
-    WHERE s.assessment_id = ${assessment_id} AND
-      s.user_id = ${student_id}
+    WHERE ass.id = ${assessment_id}
     ORDER BY q.position
     `;
     const answers = data.map((d) => d.answer as string) ?? [];
-    const score = Number(data[0].score) ?? 0;
+    const studentSubmission = data.filter((d) => d.user_id === student_id);
+    const score = Number(studentSubmission[0]?.score ?? 0);
     return { answers, score };
   } catch (e) {
     console.log("Database error: ", e);

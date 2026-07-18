@@ -133,10 +133,22 @@ export type Assessment = {
   score?: string;
 };
 
+// Row shape for the admin assessment table — no derived status/score, just the
+// stored columns shown to an admin.
+export type AssessmentRow = {
+  id: string;
+  name: string;
+  question_count: number;
+  open: Date;
+  close: Date;
+  type: "assignment" | "exam";
+};
+
 export type Question = {
   id: string;
   label: string;
   options: Option[];
+  correctOptionId?: string;
 }
 
 export type Option = {

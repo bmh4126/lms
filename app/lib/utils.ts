@@ -1,5 +1,16 @@
 import { Assessment } from "./definition";
 
+// Combine a datetime-local value (a wall-clock string with no zone, e.g.
+// "2026-07-20T09:00") with an ISO offset (e.g. "+07:00") into a Date at the
+// correct UTC instant — ready to store in a timestamp column.
+export function localTimeToDate(localDateTime: string, offset: string): Date {
+  const date = new Date(`${localDateTime}${offset}`);
+  if (Number.isNaN(date.getTime())) {
+    throw new Error(`Invalid date/time: "${localDateTime}${offset}"`);
+  }
+  return date;
+}
+
 export const generatePagination = (currentPage: number, totalPages: number) => {
   // If the total number of pages is 7 or less,
   // display all pages without any ellipsis.

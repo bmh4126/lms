@@ -5,11 +5,7 @@ import { State } from "@/app/lib/action/common-action";
 import Form from "../common-form";
 import { useActionState } from "react";
 
-export default function CreateTeacherForm({
-  grades,
-}: {
-  grades: { position: number }[];
-}) {
+export default function CreateTeacherForm() {
   const initialSate: State = { message: "", errors: {} };
   const [state, formAction] = useActionState(CreateTeacher, initialSate);
 
@@ -18,7 +14,6 @@ export default function CreateTeacherForm({
       formAction={formAction}
       state={state}
       action="Create"
-      grades={grades}
       passwordMessage="Default password: password123"
       role="teacher"
     />

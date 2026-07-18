@@ -1,7 +1,13 @@
 "use server";
 
 import { sql } from "../../db";
-import { Class, StudentForm, TeacherForm } from "../../definition";
+import {
+  Assessment,
+  AssessmentRow,
+  Class,
+  StudentForm,
+  TeacherForm,
+} from "../../definition";
 
 export async function fetchCardData() {
   const totalClassesPromise = await sql`
@@ -81,5 +87,49 @@ export async function fetchAllCurentClasses() {
   } catch (e) {
     console.log("Database error", e);
     throw new Error("Cannot fetch all grades.");
+  }
+}
+
+export async function fetchAllAssessments(
+  grade_level: string,
+  class_id: string,
+) {
+  try {
+    if (class_id) {
+      const data = await sql<AssessmentRow[]>`
+      SELECT
+        a.id,
+        name,
+        question_count,
+        open,
+        close,
+        type
+      FROM practice.assessments a
+      LEFT JOIN practice.assessment_class ac ON ac.assessment_id = a.id
+      WHERE ac.class_id::text ILIKE ${`%${class_id}%`}
+      `;
+      // console.log(data);
+      return data;
+    } else {
+      const data = await sql<AssessmentRow[]>`
+      SELECT
+        a.id,
+        name,
+        question_count,
+        open,
+        close,
+        type
+      FROM practice.assessments a
+      LEFT JOIN practice.assessment_grade_level agl ON agl.assessment_id = a.id
+      WHERE agl.grade_level::text ILIKE ${`%${grade_level}%`}
+      `;
+      // console.log(data);
+      return data;
+    }
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error(
+      `Cannot fetch assessments for grade ${grade_level} and/or class ${class_id}`,
+    );
   }
 }

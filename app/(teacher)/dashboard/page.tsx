@@ -18,7 +18,7 @@ export default async function Page() {
   const teacherSubjectId = "25547b83-fadf-4e14-a751-809cf3dfedb2"; //Change later
   const subject_id_promise = await sql`
     SELECT chapter_count
-    FROM subjects
+    FROM curriculum.subjects
     WHERE id = ${teacherSubjectId}
   `;
   const chapterCount = subject_id_promise[0].chapter_count;

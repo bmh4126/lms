@@ -2,6 +2,7 @@ import { PencilIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { deleteTeacher } from "@/app/lib/action/teacher/action";
 import { deleteStudent } from "@/app/lib/action/student/action";
+import { deleteAssessment } from "@/app/lib/action/assessment/action";
 
 export function CreateObj({ type }: { type: string }) {
   return (
@@ -29,12 +30,13 @@ export function UpdateObj({ type, id }: { type: string; id: string }) {
 const deleteFunction: Record<string, (id: string) => Promise<void>> = {
     student: deleteStudent,
     teacher: deleteTeacher,
+    assessment: deleteAssessment,
 };
 
 export function DeleteObj({ type, id }: { type: string; id: string }) {
-    const deleteUserWithId = deleteFunction[type].bind(null, id);
+    const deleteObjWithId = deleteFunction[type].bind(null, id);
   return (
-    <form action={deleteUserWithId}>
+    <form action={deleteObjWithId}>
       <button type="submit" className="rounded-md border p-2 bg-red-500 hover:opacity-80">
         <span className="sr-only">Delete</span>
         <TrashIcon className="w-5 stroke-white" />
