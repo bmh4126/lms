@@ -33,15 +33,22 @@ export function questionsValid(questions: QuestionDraft[]): boolean {
 
 export default function QuestionsBuilder({
   onValidityChange,
+  initialQuestions,
 }: {
   onValidityChange: (ok: boolean) => void;
+  initialQuestions?: QuestionDraft[];
 }) {
-  // One empty question to start. Fixed id "q0" so SSR and client match; all
-  // later ids come from a client-only counter (handlers never run on server).
-  const [questions, setQuestions] = useState<QuestionDraft[]>(() => [
-    { id: "q0", label: "", options: [], correctOptionId: null },
-  ]);
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(["q0"]));
+  // Prefill from initialQuestions (edit mode) or start with one empty question
+  // (create mode). Seed ids are stable from the server, so SSR and client match;
+  // all later ids come from a client-only counter (handlers never run on server).
+  const [questions, setQuestions] = useState<QuestionDraft[]>(() =>
+    initialQuestions && initialQuestions.length > 0
+      ? initialQuestions
+      : [{ id: "q0", label: "", options: [], correctOptionId: null }],
+  );
+  const [expanded, setExpanded] = useState<Set<string>>(
+    () => new Set(questions.map((q) => q.id)),
+  );
   const counter = useRef(1);
   const genId = (prefix: string) => `${prefix}${counter.current++}`;
 

@@ -4,7 +4,7 @@ import { sql } from "../../db";
 import { revalidatePath } from "next/cache";
 import { State } from "../common-action";
 import { z } from "zod";
-import { localTimeToDate } from "../../utils";
+import { localTimeToDate, safeCallback } from "../../utils";
 import { randomUUID } from "crypto";
 import { redirect } from "next/navigation";
 
@@ -38,30 +38,29 @@ type SubmittedQuestion = {
   correctOptionId: string | null;
 };
 
-async function revalidate() {
+function revalidate() {
   revalidatePath("/admin/assessment");
-  revalidatePath("/curriculum/practice/assignment");
-  revalidatePath("/curriculum/practice/exam");
+  revalidatePath("/curriculum/assessment/assignment");
+  revalidatePath("/curriculum/assessment/exam");
 }
 
-export async function deleteAssessment(id: string) {
-  try {
-    await sql`
-    DELETE FROM practice.assessments
-    WHERE id = ${id}
-    `;
-
-    await revalidate();
-  } catch (e) {
-    console.log("Database error", e);
-    throw new Error("Cannot delete this assessment. Please retry.");
-  }
-}
-
-export async function createAssessment(
-  _prevState: State,
-  formData: FormData,
-): Promise<State> {
+// Validate + normalise the shared create/edit form. Returns either the parsed
+// data (times converted to Dates, questions parsed) or an error State.
+function parseAssessmentForm(formData: FormData):
+  | {
+      ok: true;
+      data: {
+        type: "assignment" | "exam";
+        scope: "class" | "grade";
+        grade_level: number;
+        class_id: string;
+        name: string;
+        openAt: Date;
+        closeAt: Date;
+        questionList: SubmittedQuestion[];
+      };
+    }
+  | { ok: false; state: State } {
   const validatedFields = formSchema.safeParse({
     type: formData.get("type"),
     scope: formData.get("scope"),
@@ -75,21 +74,15 @@ export async function createAssessment(
   });
   if (!validatedFields.success) {
     return {
-      errors: z.treeifyError(validatedFields.error).properties,
-      message: "Missing fields. Failed to add new assessment",
+      ok: false,
+      state: {
+        errors: z.treeifyError(validatedFields.error).properties,
+        message: "Missing fields. Failed to save assessment",
+      },
     };
   }
-  const {
-    type,
-    scope,
-    grade_level,
-    class_id,
-    name,
-    open,
-    close,
-    timezone,
-    questions,
-  } = validatedFields.data;
+  const { type, scope, grade_level, class_id, name, open, close, timezone, questions } =
+    validatedFields.data;
 
   // Wall-clock strings + offset → real UTC instants for the timestamptz columns.
   const openAt = localTimeToDate(open, timezone);
@@ -99,52 +92,154 @@ export async function createAssessment(
   try {
     questionList = JSON.parse(questions);
   } catch {
-    return { message: "Malformed questions data. Please try again." };
+    return {
+      ok: false,
+      state: { message: "Malformed questions data. Please try again." },
+    };
   }
-  const question_count = questionList.length;
+
+  return {
+    ok: true,
+    data: {
+      type,
+      scope,
+      grade_level,
+      class_id: class_id ?? "",
+      name,
+      openAt,
+      closeAt,
+      questionList,
+    },
+  };
+}
+
+export async function deleteAssessment(id: string) {
+  try {
+    await sql`
+    DELETE FROM practice.assessments
+    WHERE id = ${id}
+    `;
+    revalidate();
+  } catch (e) {
+    console.log("Database error", e);
+    throw new Error("Cannot delete this assessment. Please retry.");
+  }
+}
+
+export async function createAssessment(
+  _prevState: State,
+  formData: FormData,
+): Promise<State> {
+  const parsed = parseAssessmentForm(formData);
+  if (!parsed.ok) return parsed.state;
+  const { type, scope, grade_level, class_id, name, openAt, closeAt, questionList } =
+    parsed.data;
+
   const assessment_id = randomUUID();
 
   try {
-    // One transaction: if any insert fails, everything rolls back — no orphaned
-    // assessment left behind. `sql` inside the callback is transaction-scoped.
-    await sql.begin(async (sql) => {
-      await sql`
+    // One transaction: any failure rolls everything back — no orphaned rows.
+    await sql.begin(async (tx) => {
+      await tx`
         INSERT INTO practice.assessments (id, name, open, close, question_count, type)
-        VALUES (${assessment_id}, ${name}, ${openAt}, ${closeAt}, ${question_count}, ${type})
+        VALUES (${assessment_id}, ${name}, ${openAt}, ${closeAt}, ${questionList.length}, ${type})
       `;
-
       for (const [qi, q] of questionList.entries()) {
         const question_id = randomUUID();
-        await sql`
+        await tx`
           INSERT INTO practice.questions (id, assessment_id, label, position)
           VALUES (${question_id}, ${assessment_id}, ${q.label}, ${qi + 1})
         `;
         for (const [oi, o] of q.options.entries()) {
-          const option_id = randomUUID();
-          const is_correct = q.correctOptionId === o.id;
-          await sql`
+          await tx`
             INSERT INTO practice.question_options (id, question_id, label, is_correct, order_index)
-            VALUES (${option_id}, ${question_id}, ${o.label}, ${is_correct}, ${oi + 1})
+            VALUES (${randomUUID()}, ${question_id}, ${o.label}, ${q.correctOptionId === o.id}, ${oi + 1})
           `;
         }
       }
-
       if (scope === "class" && class_id) {
-        await sql`
+        await tx`
           INSERT INTO practice.assessment_class (assessment_id, class_id)
           VALUES (${assessment_id}, ${class_id})
         `;
       } else {
-        await sql`
+        await tx`
           INSERT INTO practice.assessment_grade_level (assessment_id, grade_level)
           VALUES (${assessment_id}, ${grade_level})
         `;
       }
-      await revalidate();
     });
   } catch (e) {
     console.log("Database error: ", e);
     return { message: "Cannot create new assessment. Please try again." };
   }
-  redirect("/admin/assessment");
+
+  revalidate();
+  redirect(safeCallback(formData.get("callbackUrl") as string) ?? "/admin/assessment");
+}
+
+export async function updateAssessment(
+  id: string,
+  _prevState: State,
+  formData: FormData,
+): Promise<State> {
+  const parsed = parseAssessmentForm(formData);
+  if (!parsed.ok) return parsed.state;
+  const { type, scope, grade_level, class_id, name, openAt, closeAt, questionList } =
+    parsed.data;
+
+  try {
+    await sql.begin(async (tx) => {
+      await tx`
+        UPDATE practice.assessments
+        SET name = ${name}, open = ${openAt}, close = ${closeAt},
+            question_count = ${questionList.length}, type = ${type}
+        WHERE id = ${id}
+      `;
+
+      // Replace questions + options wholesale (options first for FK safety).
+      await tx`
+        DELETE FROM practice.question_options
+        WHERE question_id IN (
+          SELECT id FROM practice.questions WHERE assessment_id = ${id}
+        )
+      `;
+      await tx`DELETE FROM practice.questions WHERE assessment_id = ${id}`;
+
+      for (const [qi, q] of questionList.entries()) {
+        const question_id = randomUUID();
+        await tx`
+          INSERT INTO practice.questions (id, assessment_id, label, position)
+          VALUES (${question_id}, ${id}, ${q.label}, ${qi + 1})
+        `;
+        for (const [oi, o] of q.options.entries()) {
+          await tx`
+            INSERT INTO practice.question_options (id, question_id, label, is_correct, order_index)
+            VALUES (${randomUUID()}, ${question_id}, ${o.label}, ${q.correctOptionId === o.id}, ${oi + 1})
+          `;
+        }
+      }
+
+      // Replace targeting.
+      await tx`DELETE FROM practice.assessment_class WHERE assessment_id = ${id}`;
+      await tx`DELETE FROM practice.assessment_grade_level WHERE assessment_id = ${id}`;
+      if (scope === "class" && class_id) {
+        await tx`
+          INSERT INTO practice.assessment_class (assessment_id, class_id)
+          VALUES (${id}, ${class_id})
+        `;
+      } else {
+        await tx`
+          INSERT INTO practice.assessment_grade_level (assessment_id, grade_level)
+          VALUES (${id}, ${grade_level})
+        `;
+      }
+    });
+  } catch (e) {
+    console.log("Database error: ", e);
+    return { message: "Cannot update this assessment. Please try again." };
+  }
+
+  revalidate();
+  redirect(safeCallback(formData.get("callbackUrl") as string) ?? "/admin/assessment");
 }

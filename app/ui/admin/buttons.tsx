@@ -1,13 +1,24 @@
+"use client";
+
 import { PencilIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import { deleteTeacher } from "@/app/lib/action/teacher/action";
 import { deleteStudent } from "@/app/lib/action/student/action";
 import { deleteAssessment } from "@/app/lib/action/assessment/action";
 
+// The current list URL (path + active filters), to return to after create/edit.
+function useCallbackUrl() {
+  const pathname = usePathname();
+  const params = useSearchParams().toString();
+  return params ? `${pathname}?${params}` : pathname;
+}
+
 export function CreateObj({ type }: { type: string }) {
+  const callbackUrl = useCallbackUrl();
   return (
     <Link
-      href={`/admin/${type}/create`}
+      href={`/admin/${type}/create?callbackUrl=${encodeURIComponent(callbackUrl)}`}
       className="flex h-10 items-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
     >
       <span className="hidden md:block">Add new {type}</span>{" "}
@@ -17,9 +28,10 @@ export function CreateObj({ type }: { type: string }) {
 }
 
 export function UpdateObj({ type, id }: { type: string; id: string }) {
+  const callbackUrl = useCallbackUrl();
   return (
     <Link
-      href={`/admin/${type}/${id}/edit`}
+      href={`/admin/${type}/${id}/edit?callbackUrl=${encodeURIComponent(callbackUrl)}`}
       className="rounded-md border p-2 hover:opacity-80 bg-green-500"
     >
       <PencilIcon className="w-5 stroke-white" />

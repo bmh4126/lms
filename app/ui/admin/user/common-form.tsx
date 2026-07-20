@@ -22,6 +22,7 @@ export default function Form({
   classes,
   passwordMessage,
   role,
+  callbackUrl,
 }: {
   formAction: (payload: FormData) => void;
   fieldValue?: TeacherForm | StudentForm;
@@ -30,6 +31,7 @@ export default function Form({
   classes?: Class[];
   passwordMessage: string;
   role: string;
+  callbackUrl: string;
 }) {
   const fields = fieldValue ? fieldValue : { name: "", email: "", grade: "" };
   const defaultPassword = action === "Edit" ? "" : "password123";
@@ -59,6 +61,8 @@ export default function Form({
     : [];
   return (
     <form action={formAction}>
+      {/* Where to return after a successful submit (read by the action). */}
+      <input type="hidden" name="callbackUrl" value={callbackUrl} />
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
         {/* Teacher Name */}
         <div className="mb-4">
@@ -231,7 +235,7 @@ export default function Form({
       </div>
       <div className="mt-6 flex justify-end gap-4">
         <Link
-          href={`/admin/${role}`}
+          href={callbackUrl}
           className="flex h-10 items-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
         >
           Cancel

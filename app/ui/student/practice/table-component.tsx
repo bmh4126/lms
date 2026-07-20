@@ -21,9 +21,11 @@ export function StatusCell({ assessment }: { assessment: Assessment }) {
         `shadow-md/30 w-full flex justify-center items-center gap-1 rounded-full px-2 py-1 text-md font-medium text-center`,
         status === "Dued"
           ? "bg-red-200 text-red-500"
-          : status === "Before Open"
-            ? "border-gray-200 bg-gray-50 text-gray-500 shadow-none"
-            : "bg-gray-100 text-gray-600",
+          : status === "Submitted"
+            ? "bg-blue-100 text-blue-600"
+            : status === "Before Open"
+              ? "border-gray-200 bg-gray-50 text-gray-500 shadow-none"
+              : "bg-gray-100 text-gray-600",
       )}
     >
       {status}

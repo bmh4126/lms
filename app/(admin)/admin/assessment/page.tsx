@@ -1,5 +1,5 @@
 import {
-  fetchAllAssessments,
+  fetchFilteredAssessments,
   fetchAllCurentClasses,
 } from "@/app/lib/data/admin/data";
 import { lusitana } from "@/app/ui/font";
@@ -30,7 +30,7 @@ export default async function Page(props: {
   // the query treats it as no filter on that dimension.
   const ready = gradeParam !== "" && classParam !== "";
   const assessments = ready
-    ? await fetchAllAssessments(
+    ? await fetchFilteredAssessments(
         gradeParam === "all" ? "" : gradeParam,
         classParam === "all" ? "" : classParam,
       )

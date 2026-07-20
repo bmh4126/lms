@@ -10,17 +10,17 @@ const links: NavLink[] = [
     icon: "bookOpenIcon",
   },
   {
-    name: "Practice",
-    href: "/curriculum/practice",
+    name: "Assessments",
+    href: "/curriculum/assessment",
     icon: "pencilIcon",
     options: [
       {
         name: "Assignments",
-        href: "/curriculum/practice/assignment",
+        href: "/curriculum/assessment/assignment",
       },
       {
         name: "Exams",
-        href: "/curriculum/practice/exam",
+        href: "/curriculum/assessment/exam",
       },
     ],
   },

@@ -7,6 +7,7 @@ import { email, z } from "zod";
 import { State } from "../common-action";
 import b from "bcrypt";
 import { randomUUID } from "crypto";
+import { safeCallback } from "../../utils";
 
 const formSchema = z.object({
   userId: z.uuid(),
@@ -64,7 +65,7 @@ export async function createStudent(
         : "Cannot add this student. Please retry.";
     return { message: message };
   }
-  redirect("/admin/student");
+  redirect(safeCallback(formData.get("callbackUrl") as string) ?? "/admin/student");
 }
 
 export async function deleteStudent(id: string) {
@@ -131,5 +132,5 @@ export async function updateStudent(
         : "Cannot update this student. Please retry.";
     return { message: message };
   }
-  redirect("/admin/student");
+  redirect(safeCallback(formData.get("callbackUrl") as string) ?? "/admin/student");
 }

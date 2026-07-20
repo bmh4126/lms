@@ -9,9 +9,11 @@ import Form from "../common-form";
 export default function EditStudentForm({
   student,
   classes,
+  callbackUrl,
 }: {
   student: StudentForm;
   classes: Class[];
+  callbackUrl: string;
 }) {
   const initialSate: State = { message: null, errors: {} };
   const updateStudentWithId = updateStudent.bind(null, student.id); //
@@ -25,6 +27,7 @@ export default function EditStudentForm({
       classes={classes}
       passwordMessage="Leave blank to keep password unchanged"
       role="student"
+      callbackUrl={callbackUrl}
     />
   );
 }

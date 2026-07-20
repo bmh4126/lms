@@ -5,7 +5,11 @@ import { State } from "@/app/lib/action/common-action";
 import Form from "../common-form";
 import { useActionState } from "react";
 
-export default function CreateTeacherForm() {
+export default function CreateTeacherForm({
+  callbackUrl,
+}: {
+  callbackUrl: string;
+}) {
   const initialSate: State = { message: "", errors: {} };
   const [state, formAction] = useActionState(CreateTeacher, initialSate);
 
@@ -16,6 +20,7 @@ export default function CreateTeacherForm() {
       action="Create"
       passwordMessage="Default password: password123"
       role="teacher"
+      callbackUrl={callbackUrl}
     />
   );
 }

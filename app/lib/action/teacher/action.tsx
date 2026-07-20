@@ -7,6 +7,7 @@ import { z } from "zod";
 import { randomUUID } from "crypto";
 import b from "bcrypt";
 import { State } from "../common-action";
+import { safeCallback } from "../../utils";
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -52,7 +53,7 @@ export async function CreateTeacher(
         : "Cannot add this teacher. Please retry.";
     return { message: message };
   }
-  redirect("/admin/teacher");
+  redirect(safeCallback(formData.get("callbackUrl") as string) ?? "/admin/teacher");
 }
 
 export async function deleteTeacher(id: string) {
@@ -118,5 +119,5 @@ export async function updateTeacher(
         : "Cannot update this teacher. Please retry.";
     return { message: message };
   }
-  redirect("/admin/teacher");
+  redirect(safeCallback(formData.get("callbackUrl") as string) ?? "/admin/teacher");
 }

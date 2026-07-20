@@ -1,5 +1,40 @@
 import { Assessment } from "./definition";
 
+// Only allow a same-site absolute path as a redirect target — blocks open
+// redirects like "https://evil.com" or protocol-relative "//evil.com".
+export function safeCallback(url?: string | null): string | undefined {
+  if (!url) return undefined;
+  return url.startsWith("/") && !url.startsWith("//") ? url : undefined;
+}
+
+// Restrictions for the "do" flow. Exams are locked down (timed, one attempt,
+// leave-guard, no early review); assignments are relaxed. The same do component
+// consumes this to toggle its behavior.
+export type AssessmentPolicy = {
+  timed: boolean;
+  singleAttempt: boolean;
+  lockOnLeave: boolean;
+  canReviewBeforeClose: boolean;
+};
+
+export function getAssessmentPolicy(
+  type: "assignment" | "exam",
+): AssessmentPolicy {
+  return type === "exam"
+    ? {
+        timed: true,
+        singleAttempt: true,
+        lockOnLeave: true,
+        canReviewBeforeClose: false,
+      }
+    : {
+        timed: false,
+        singleAttempt: false,
+        lockOnLeave: false,
+        canReviewBeforeClose: true,
+      };
+}
+
 // Combine a datetime-local value (a wall-clock string with no zone, e.g.
 // "2026-07-20T09:00") with an ISO offset (e.g. "+07:00") into a Date at the
 // correct UTC instant — ready to store in a timestamp column.
@@ -9,6 +44,30 @@ export function localTimeToDate(localDateTime: string, offset: string): Date {
     throw new Error(`Invalid date/time: "${localDateTime}${offset}"`);
   }
   return date;
+}
+
+// Inverse of localTimeToDate: turn a UTC Date into a datetime-local wall-clock
+// string ("YYYY-MM-DDTHH:mm") in the given offset — e.g. to prefill an edit
+// form's <input type="datetime-local">. Defaults to GMT+7.
+export function dateToLocalTime(d: Date, offset: string = "+07:00"): string {
+  if (Number.isNaN(d.getTime())) {
+    throw new Error("dateToLocalTime: invalid Date");
+  }
+  // Parse "+07:00" / "-05:30" into signed minutes.
+  const sign = offset.startsWith("-") ? -1 : 1;
+  const [oh, om] = offset.replace(/[+-]/, "").split(":").map(Number);
+  const offsetMinutes = sign * (oh * 60 + om);
+
+  // Shift the instant by the offset, then read the UTC parts — they now spell
+  // the wall-clock time in that zone.
+  const shifted = new Date(d.getTime() + offsetMinutes * 60_000);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const yyyy = shifted.getUTCFullYear();
+  const mo = pad(shifted.getUTCMonth() + 1);
+  const da = pad(shifted.getUTCDate());
+  const hh = pad(shifted.getUTCHours());
+  const mi = pad(shifted.getUTCMinutes());
+  return `${yyyy}-${mo}-${da}T${hh}:${mi}`;
 }
 
 export const generatePagination = (currentPage: number, totalPages: number) => {
@@ -118,6 +177,31 @@ export const formatDuration = (open: Date, close: Date) => {
 export const MstoMinute = (duration: number) => duration / 60 / 1000;
 
 export const passedTime = (point: Date) => point.getTime() < Date.now();
+
+// What the single /assessment/[id] page should show, derived from state — NOT
+// from the URL.
+//   locked: before open, OR a single-attempt exam already submitted (still open).
+//   do:     open and either not submitted, or a multi-attempt assignment the
+//           student can keep editing before close.
+//   review: submitted and past close — full review with the student's answers.
+//   missed: past close with no submission — review with the key, no selections.
+export type AssessmentMode = "locked" | "do" | "review" | "missed";
+
+export function deriveAssessmentMode(
+  open: Date,
+  close: Date,
+  score: string | null | undefined,
+  singleAttempt: boolean,
+): AssessmentMode {
+  if (!passedTime(open)) return "locked";
+  if (!passedTime(close)) {
+    // Window still open.
+    if (!score) return "do"; //                 not submitted yet
+    return singleAttempt ? "locked" : "do"; //  exam: locked; assignment: continue
+  }
+  // Window closed.
+  return score ? "review" : "missed";
+}
 
 // Ordering:
 //  1) "Before Open" exams come first, most upcoming first (ascending start:

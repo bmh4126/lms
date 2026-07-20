@@ -7,9 +7,11 @@ import { createStudent } from "@/app/lib/action/student/action";
 import { Class } from "@/app/lib/definition";
 
 export default function CreateStudentForm({
-  classes
+  classes,
+  callbackUrl,
 }: {
   classes: Class[];
+  callbackUrl: string;
 }) {
   const initialSate: State = { message: "", errors: {} };
   const [state, formAction] = useActionState(createStudent, initialSate);
@@ -22,6 +24,7 @@ export default function CreateStudentForm({
       classes={classes}
       passwordMessage="Default password: password123"
       role="student"
+      callbackUrl={callbackUrl}
     />
   );
 }

@@ -15,7 +15,7 @@ export default function LoginPage() {
         <div className="flex h-20 w-full items-end rounded-lg bg-blue-500 p-3 md:h-36">
           <Link href="/">
             <div className="w-32 text-white md:w-36">
-              <Logo role=""/>
+              <Logo userName=""/>
             </div>
           </Link>
         </div>

@@ -166,49 +166,54 @@ export async function fetchLessonById(id: string) {
   }
 }
 
-export async function fetchAssignmentRowsByClass(
+// Unified list fetch for both assessment types. `type` filters the rows; the
+// returned stats are a superset so either card set can pull what it needs.
+export async function fetchAssessmentRows(
+  type: "assignment" | "exam",
   grade_level: number,
   class_id: string,
   studentId: string,
 ) {
   try {
-    type AssignmentRow = Omit<Assessment, "status">;
-    const data = await sql<AssignmentRow[]>`
+    type Row = Omit<Assessment, "status">;
+    const data = await sql<Row[]>`
     SELECT
-    a.id,
-    a.name,
-    a.open,
-    a.close,
-    a.question_count,
-    a.type,
-    s.score
+      a.id,
+      a.name,
+      a.open,
+      a.close,
+      a.question_count,
+      a.type,
+      s.score
     FROM practice.assessments a
     LEFT JOIN practice.assessment_grade_level agl ON agl.assessment_id = a.id
     LEFT JOIN practice.assessment_class ac ON ac.assessment_id = a.id
     LEFT JOIN practice.submissions s ON a.id = s.assessment_id AND s.user_id = ${studentId}
-    WHERE a.type = 'assignment' AND
+    WHERE a.type = ${type} AND
       (agl.grade_level = ${grade_level} OR
       ac.class_id = ${class_id})
     `;
     const tableDataBuild: Assessment[] = data.map((d) => {
       if (!passedTime(d.open)) return { ...d, status: "Before Open" };
-      if (passedTime(d.open) && !passedTime(d.close) && !d.score)
-        return { ...d, status: "In Progress" };
-      if (passedTime(d.close) && !d.score) return { ...d, status: "Dued" };
-      return { ...d, status: "Done" };
+      if (!passedTime(d.close)) {
+        // Window open: submitted → "Submitted", otherwise still "In Progress".
+        return { ...d, status: d.score ? "Submitted" : "In Progress" };
+      }
+      // Window closed: submitted → "Done" (score shown), otherwise "Dued".
+      return { ...d, status: d.score ? "Done" : "Dued" };
     });
     const tableData = tableDataBuild.sort(compareExams);
-    const totalAssignment = Number(data.length);
+    const total = Number(data.length);
+    const upcoming = Number(data.filter((d) => !passedTime(d.open)).length);
     const totalInProgress = Number(
-      data
-        .map((d) => !passedTime(d.close) && !d.score)
-        .filter((d) => d === true).length,
-    );
-    const totalDued = Number(
-      data.map((d) => passedTime(d.close) && !d.score).filter((d) => d === true)
+      data.filter((d) => passedTime(d.open) && !passedTime(d.close) && !d.score)
         .length,
     );
-    const inConsideration = data.filter((d) => passedTime(d.close) || d.score);
+    const completed = Number(data.filter((d) => d.score).length);
+    const totalDued = Number(
+      data.filter((d) => passedTime(d.close) && !d.score).length,
+    );
+    const inConsideration = data.filter((d) => passedTime(d.close));
     const considertationAmount: number = inConsideration.reduce(
       (acc, d) => acc + d.question_count,
       0,
@@ -224,74 +229,9 @@ export async function fetchAssignmentRowsByClass(
         )
           .toFixed(2)
           .toString();
-    return { tableData, totalAssignment, totalInProgress, totalDued, avgScore };
-  } catch (e) {
-    console.log("Database error: ", e);
-    throw new Error("Cannot fetch assignments");
-  }
-}
-
-export async function fetchExamRowsByStudentId(
-  grade_level:number,
-  class_id: string,
-  studentId: string,
-) {
-  try {
-    type ExamRow = Omit<Assessment, "status">;
-    const data = await sql<ExamRow[]>`
-    SELECT
-      a.id,
-      a.name,
-      a.open,
-      a.close,
-      a.question_count,
-      a.type,
-      s.score
-    FROM practice.assessments a
-    LEFT JOIN practice.assessment_grade_level agl ON agl.assessment_id = a.id
-    LEFT JOIN practice.assessment_class ac ON ac.assessment_id = a.id
-    LEFT JOIN practice.submissions s ON a.id = s.assessment_id AND s.user_id = ${studentId}
-    WHERE a.type = 'exam' AND
-      (agl.grade_level = ${grade_level} OR
-      ac.class_id = ${class_id})
-    `;
-    const tableDataBuild: Assessment[] = data.map((d) => {
-      if (!passedTime(d.open)) return { ...d, status: "Before Open" };
-      if (passedTime(d.open) && !passedTime(d.close) && !d.score)
-        return { ...d, status: "In Progress" };
-      if (passedTime(d.close) && !d.score) return { ...d, status: "Dued" };
-      return { ...d, status: "Done" };
-    });
-    const tableData = tableDataBuild.sort(compareExams);
-    const totalExams = Number(data.length);
-    const upcoming = Number(data.filter((d) => !passedTime(d.open)).length);
-    const totalInProgress = Number(
-      data.filter((d) => passedTime(d.open) && !passedTime(d.close) && !d.score)
-        .length,
-    );
-    const completed = Number(data.filter((d) => d.score).length);
-    const inConsideration = data.filter((d) => passedTime(d.close) || d.score);
-    const totalDued = Number(
-      data.filter((d) => passedTime(d.close) && !d.score).length,
-    );
-    const considertationAmount: number = inConsideration.reduce(
-      (acc, d) => acc + d.question_count,
-      0,
-    );
-    const avgScore = !considertationAmount
-      ? Number(-1).toString()
-      : Number(
-          (inConsideration
-            .map((d) => (d.score ? parseInt(d.score) : 0))
-            .reduce((acc, score) => acc + score, 0) /
-            considertationAmount) *
-            100,
-        )
-          .toFixed(2)
-          .toString();
     return {
       tableData,
-      totalExams,
+      total,
       totalInProgress,
       upcoming,
       completed,
@@ -300,7 +240,7 @@ export async function fetchExamRowsByStudentId(
     };
   } catch (e) {
     console.log("Database error: ", e);
-    throw new Error("Cannot fetch exams");
+    throw new Error(`Cannot fetch ${type}s`);
   }
 }
 
@@ -355,23 +295,39 @@ export async function fetchFilteredStudent(query: string, currentPage: number) {
 
 export async function fetchQuestionsById(assessment_id: string) {
   try {
-    const data = await sql<Question[]>`
+    type reviewAssessment = { name: string; questions: Question[] };
+    const data = await sql<reviewAssessment[]>`
     SELECT
-      q.id,
-      q.label,
-      (
-        SELECT jsonb_agg(
-          jsonb_build_object('id', o.id, 'label', o.label, 'is_correct', o.is_correct)
-          ORDER BY o.order_index
-        )
-        FROM practice.question_options o
-        WHERE o.question_id = q.id
-      ) AS options
-    FROM practice.questions q
-    WHERE assessment_id = ${assessment_id}
-    ORDER BY q.position
+      a.name,
+      COALESCE(
+        (
+          SELECT jsonb_agg(
+            jsonb_build_object(
+              'id', q.id,
+              'label', q.label,
+              'options', COALESCE(
+                (
+                  SELECT jsonb_agg(
+                    jsonb_build_object('id', o.id, 'label', o.label, 'is_correct', o.is_correct)
+                    ORDER BY o.order_index
+                  )
+                  FROM practice.question_options o
+                  WHERE o.question_id = q.id
+                ),
+                '[]'::jsonb
+              )
+            )
+            ORDER BY q.position
+          )
+          FROM practice.questions q
+          WHERE q.assessment_id = a.id
+        ),
+        '[]'::jsonb
+      ) AS questions
+    FROM practice.assessments a
+    WHERE a.id = ${assessment_id}
     `;
-    return data;
+    return data[0];
   } catch (e) {
     console.log("Database error: ", e);
     throw new Error("Cannot fetch questions for such AssessmentId.");
@@ -405,16 +361,30 @@ export async function fetchAnswersAndScoreForReview(
   }
 }
 
-export async function fetchAssessmentById(assessment_id: string) {
+// The single /assessment/[id] page reads core fields + timing + this student's
+// submission score, so it can decide the mode (locked / do / review / missed).
+export async function fetchAssessmentAttempt(id: string, studentId: string) {
   try {
-    const data = await sql`
-    SELECT name
-    FROM practice.assessments
-    WHERE id = ${assessment_id}
+    const [row] = await sql<
+      {
+        id: string;
+        name: string;
+        type: "assignment" | "exam";
+        open: Date;
+        close: Date;
+        question_count: number;
+        score: string | null;
+      }[]
+    >`
+    SELECT a.id, a.name, a.type, a.open, a.close, a.question_count, s.score
+    FROM practice.assessments a
+    LEFT JOIN practice.submissions s
+      ON a.id = s.assessment_id AND s.user_id = ${studentId}
+    WHERE a.id = ${id}
     `;
-    return data[0]?.name ?? "Unknown";
+    return row ?? null;
   } catch (e) {
     console.log("Database error: ", e);
-    throw new Error("Cannot fetch assessment for such ID.");
+    throw new Error("Cannot fetch assessment.");
   }
 }

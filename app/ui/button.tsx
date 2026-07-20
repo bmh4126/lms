@@ -24,8 +24,7 @@ export function PracticeActionButton({
   assessment,
 }: {
   assessment: Assessment;
-  }) {
-  const type = assessment.type;
+}) {
   const status = assessment.status;
   const id = assessment.id;
   const getLabel = (status: string): [string, string] => {
@@ -41,6 +40,16 @@ export function PracticeActionButton({
           "Review",
           "shadow-md/30 bg-gray-100 text-gray-700 hover:bg-gray-200",
         ];
+      case "Submitted":
+        if (assessment.type === "assignment")
+          return [
+            "Continue",
+            "shadow-md/30 bg-blue-500 text-white hover:bg-blue-400",
+          ];
+        return [
+          "Locked",
+          "disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:shadow-none",
+        ];
       case "In Progress":
         return [
           "Continue",
@@ -51,7 +60,6 @@ export function PracticeActionButton({
     }
   };
   const [label, styles] = getLabel(status);
-  const hrefLink = label === "Review" ? `/review` : ``;
   return (
     <>
       {label === "Locked" ? (
@@ -65,7 +73,7 @@ export function PracticeActionButton({
           </button>
         </Link>
       ) : (
-        <Link href={`/curriculum/practice/${type}/${id}/${hrefLink}`}>
+        <Link href={`/curriculum/assessment/${id}`}>
           <button
             type="button"
             className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${styles}`}

@@ -90,42 +90,31 @@ export async function fetchAllCurentClasses() {
   }
 }
 
-export async function fetchAllAssessments(
+export async function fetchFilteredAssessments(
   grade_level: string,
   class_id: string,
 ) {
   try {
-    if (class_id) {
-      const data = await sql<AssessmentRow[]>`
+    const data = await sql<Assessment[]>`
       SELECT
         a.id,
         name,
         question_count,
         open,
         close,
-        type
-      FROM practice.assessments a
-      LEFT JOIN practice.assessment_class ac ON ac.assessment_id = a.id
-      WHERE ac.class_id::text ILIKE ${`%${class_id}%`}
-      `;
-      // console.log(data);
-      return data;
-    } else {
-      const data = await sql<AssessmentRow[]>`
-      SELECT
-        a.id,
-        name,
-        question_count,
-        open,
-        close,
+        COALESCE(agl.grade_level, c.grade_level) AS grade_level,
+        class_id,
         type
       FROM practice.assessments a
       LEFT JOIN practice.assessment_grade_level agl ON agl.assessment_id = a.id
-      WHERE agl.grade_level::text ILIKE ${`%${grade_level}%`}
+      LEFT JOIN practice.assessment_class ac ON ac.assessment_id = a.id
+      LEFT JOIN school.classes c ON c.id = ac.class_id
+      WHERE agl.grade_level::text ILIKE ${`%${grade_level}%`} OR
+        (c.grade_level::text ILIKE ${`%${grade_level}%`} AND
+        ac.class_id::text ILIKE ${`%${class_id}%`})
       `;
-      // console.log(data);
-      return data;
-    }
+    console.log(data)
+    return data;
   } catch (e) {
     console.log("Database error: ", e);
     throw new Error(

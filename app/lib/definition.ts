@@ -126,7 +126,7 @@ export type Assessment = {
   id: string;
   name: string;
   question_count: number;
-  status: "Before Open" | "In Progress" | "Done" | "Dued";
+  status: "Before Open" | "In Progress" | "Submitted" | "Done" | "Dued";
   open: Date;
   close: Date;
   type: "assignment" | "exam";
@@ -150,6 +150,20 @@ export type Question = {
   options: Option[];
   correctOptionId?: string;
 }
+
+// Everything the edit form needs to prefill: core fields + targeting + the
+// full question tree (options carry is_correct).
+export type AssessmentEdit = {
+  id: string;
+  name: string;
+  open: Date;
+  close: Date;
+  type: "assignment" | "exam";
+  scope: "class" | "grade";
+  grade_level: number;
+  class_id: string | null;
+  questions: { id: string; label: string; options: Option[] }[];
+};
 
 export type Option = {
   id: string;

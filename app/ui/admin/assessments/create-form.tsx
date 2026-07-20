@@ -25,9 +25,11 @@ const TIMEZONE_LABEL = "GMT+7";
 export default function CreateAssessmentForm({
   classes,
   grades,
+  callbackUrl,
 }: {
   classes: Class[];
   grades: number[];
+  callbackUrl: string;
 }) {
   // Close must be after open, and can only be set once open is set — so we
   // track both here to disable/bound the close picker on the client.
@@ -68,6 +70,8 @@ export default function CreateAssessmentForm({
 
   return (
     <form action={formAction}>
+      {/* Where to return after a successful create (read by the action). */}
+      <input type="hidden" name="callbackUrl" value={callbackUrl} />
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
         {/* Assessment type */}
         <fieldset className="mb-4">
@@ -341,7 +345,7 @@ export default function CreateAssessmentForm({
         <QuestionsBuilder onValidityChange={setQuestionsOk} />
       </div>
       <div className="mt-6 flex justify-end gap-4">
-        <Cancel href="/admin/assessment" />
+        <Cancel href={callbackUrl} />
         <Button type="submit" disabled={!isValid} aria-disabled={!isValid}>
           Create assessment
         </Button>
