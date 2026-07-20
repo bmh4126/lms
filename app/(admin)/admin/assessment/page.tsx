@@ -1,5 +1,6 @@
 import {
   fetchFilteredAssessments,
+  fetchAssessmentPages,
   fetchAllCurentClasses,
 } from "@/app/lib/data/admin/data";
 import { lusitana } from "@/app/ui/font";
@@ -7,13 +8,19 @@ import { Metadata } from "next";
 import Selector from "@/app/ui/selector/grade-class";
 import { CreateObj } from "@/app/ui/admin/buttons";
 import AdminAssessmentTable from "@/app/ui/admin/assessments/table";
+import Pagination from "@/app/ui/paginations";
 
 export const metadata: Metadata = {
   title: "Assessments | Admin",
 };
 
 export default async function Page(props: {
-  searchParams?: Promise<{ grade?: string; class_id?: string }>;
+  searchParams?: Promise<{
+    grade?: string;
+    class_id?: string;
+    type?: string;
+    page?: string;
+  }>;
 }) {
   const classes = await fetchAllCurentClasses();
   // Distinct grade levels — a grade can have many classes.
@@ -21,20 +28,21 @@ export default async function Page(props: {
     (a, b) => a - b,
   );
 
-  // Params from the Selector. "" = not chosen yet, "all" = no filter.
+  // Params from the Selector. Grade/class default to "all" (show everything);
+  // "all" → "" so the query treats it as no filter on that dimension.
   const searchParams = await props.searchParams;
-  const gradeParam = searchParams?.grade ?? "";
-  const classParam = searchParams?.class_id ?? "";
+  const gradeParam = searchParams?.grade ?? "all";
+  const classParam = searchParams?.class_id ?? "all";
+  const typeParam = searchParams?.type ?? ""; // "" = all types
+  const currentPage = Math.max(1, Number(searchParams?.page) || 1);
 
-  // Only fetch once BOTH grade and class are chosen (non-blank). "all" → "" so
-  // the query treats it as no filter on that dimension.
-  const ready = gradeParam !== "" && classParam !== "";
-  const assessments = ready
-    ? await fetchFilteredAssessments(
-        gradeParam === "all" ? "" : gradeParam,
-        classParam === "all" ? "" : classParam,
-      )
-    : [];
+  const grade = gradeParam === "all" ? "" : gradeParam;
+  const cls = classParam === "all" ? "" : classParam;
+
+  const [assessments, totalPages] = await Promise.all([
+    fetchFilteredAssessments(grade, cls, typeParam, currentPage),
+    fetchAssessmentPages(grade, cls, typeParam),
+  ]);
 
   return (
     <div className="w-full">
@@ -46,13 +54,12 @@ export default async function Page(props: {
         <CreateObj type="assessment" />
       </div>
 
-      {ready ? (
-        <AdminAssessmentTable assessments={assessments} />
-      ) : (
-        <p className="mt-4 text-sm text-gray-500">
-          Choose a grade and class to view assessments.
-        </p>
+      {totalPages > 1 && (
+        <div className="mt-5 flex w-full justify-center">
+          <Pagination totalPages={totalPages} />
+        </div>
       )}
+      <AdminAssessmentTable assessments={assessments} />
     </div>
   );
 }

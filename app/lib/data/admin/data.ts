@@ -90,10 +90,15 @@ export async function fetchAllCurentClasses() {
   }
 }
 
+const ASSESSMENTS_PER_PAGE = 6;
+
 export async function fetchFilteredAssessments(
   grade_level: string,
   class_id: string,
+  type: string,
+  currentPage: number,
 ) {
+  const offset = (currentPage - 1) * ASSESSMENTS_PER_PAGE;
   try {
     const data = await sql<Assessment[]>`
       SELECT
@@ -109,13 +114,10 @@ export async function fetchFilteredAssessments(
       LEFT JOIN practice.assessment_grade_level agl ON agl.assessment_id = a.id
       LEFT JOIN practice.assessment_class ac ON ac.assessment_id = a.id
       LEFT JOIN school.classes c ON c.id = ac.class_id
-      WHERE (agl.grade_level IS NOT NULL AND
-        agl.grade_level::text ILIKE ${`%${grade_level}%`}) OR
-        (c.grade_level::text ILIKE ${`%${grade_level}%`} AND
-        ac.class_id IS NOT NULL AND
-        ac.class_id::text ILIKE ${`%${class_id}%`})
+      WHERE ${assessmentFilter(grade_level, class_id, type)}
+      ORDER BY a.open DESC
+      LIMIT ${ASSESSMENTS_PER_PAGE} OFFSET ${offset}
       `;
-    console.log(data)
     return data;
   } catch (e) {
     console.log("Database error: ", e);
@@ -123,4 +125,42 @@ export async function fetchFilteredAssessments(
       `Cannot fetch assessments for grade ${grade_level} and/or class ${class_id}`,
     );
   }
+}
+
+// Total pages for the same filter — powers the Pagination control.
+export async function fetchAssessmentPages(
+  grade_level: string,
+  class_id: string,
+  type: string,
+) {
+  try {
+    const data = await sql`
+      SELECT COUNT(*)
+      FROM practice.assessments a
+      LEFT JOIN practice.assessment_grade_level agl ON agl.assessment_id = a.id
+      LEFT JOIN practice.assessment_class ac ON ac.assessment_id = a.id
+      LEFT JOIN school.classes c ON c.id = ac.class_id
+      WHERE ${assessmentFilter(grade_level, class_id, type)}
+      `;
+    return Math.ceil(Number(data[0].count) / ASSESSMENTS_PER_PAGE) || 1;
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot fetch assessment pages.");
+  }
+}
+
+// Shared WHERE predicate (exact matches, not ILIKE substrings). A specific class
+// wins; otherwise filter by grade (grade-scoped OR class-in-grade); empty = all.
+// Layered with an optional exact type filter.
+function assessmentFilter(grade_level: string, class_id: string, type: string) {
+  return sql`
+    (CASE
+      WHEN ${class_id} <> '' THEN ac.class_id::text = ${class_id}
+      WHEN ${grade_level} <> '' THEN
+        agl.grade_level::text = ${grade_level}
+        OR c.grade_level::text = ${grade_level}
+      ELSE TRUE
+    END)
+    AND (${type} = '' OR a.type = ${type})
+  `;
 }
