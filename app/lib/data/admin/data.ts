@@ -109,8 +109,10 @@ export async function fetchFilteredAssessments(
       LEFT JOIN practice.assessment_grade_level agl ON agl.assessment_id = a.id
       LEFT JOIN practice.assessment_class ac ON ac.assessment_id = a.id
       LEFT JOIN school.classes c ON c.id = ac.class_id
-      WHERE agl.grade_level::text ILIKE ${`%${grade_level}%`} OR
+      WHERE (agl.grade_level IS NOT NULL AND
+        agl.grade_level::text ILIKE ${`%${grade_level}%`}) OR
         (c.grade_level::text ILIKE ${`%${grade_level}%`} AND
+        ac.class_id IS NOT NULL AND
         ac.class_id::text ILIKE ${`%${class_id}%`})
       `;
     console.log(data)
