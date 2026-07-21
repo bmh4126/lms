@@ -79,6 +79,7 @@ export default async function Page(prop: { params: Promise<{ id: string }> }) {
           </p>
         </div>
         <AssessmentRunner
+          close={assessment.close}
           assessment_id={assessment.id}
           questions={todo.questions}
           policy={policy}

@@ -6,17 +6,20 @@ import { AssessmentPolicy } from "@/app/lib/utils";
 import { Button } from "@/app/ui/button";
 import QuestionsWrapper from "./questions";
 import { submitAnswer } from "@/app/lib/action/assessment/action";
+import CountdownTimer from "./countdown-timer";
 
 // The interactive "do" controller. Single owner of the student's selections
 // (useState) — the question components below are controlled and report clicks
 // via `onSelect`. This is also where a draft-save and the final submit hook in.
 export default function AssessmentRunner({
   assessment_id,
+  close,
   questions,
   policy,
   initialAnswers,
 }: {
-  assessment_id: string;
+    assessment_id: string;
+    close: Date;
   questions: Question[];
   policy: AssessmentPolicy;
   initialAnswers?: Record<string, string>;
@@ -78,7 +81,7 @@ export default function AssessmentRunner({
         </span>
         {policy.timed && (
           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-            Timed
+            <CountdownTimer targetDate={close}/>
           </span>
         )}
       </div>
