@@ -14,9 +14,9 @@ import {
   getAssessmentPolicy,
   formatDateToTime,
 } from "@/app/lib/utils";
-import QuestionsWrapper from "@/app/ui/student/practice/questions";
-import AssessmentRunner from "@/app/ui/student/practice/assessment-runner";
-import { ReviewScore } from "@/app/ui/student/practice/score";
+import QuestionsWrapper from "@/app/ui/student/assessment/questions";
+import AssessmentRunner from "@/app/ui/student/assessment/assessment-runner";
+import { ReviewScore } from "@/app/ui/student/assessment/score";
 
 export const metadata: Metadata = {
   title: "Assessment",

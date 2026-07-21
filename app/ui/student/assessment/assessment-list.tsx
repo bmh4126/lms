@@ -1,8 +1,8 @@
 import { lusitana } from "@/app/ui/font";
-import AssignmentCards from "@/app/ui/student/practice/assignments/cards";
-import ExamCards from "@/app/ui/student/practice/exams/cards";
-import AssignmentTable from "@/app/ui/student/practice/assignments/assignment-table";
-import ExamTable from "@/app/ui/student/practice/exams/exam-table";
+import AssignmentCards from "@/app/ui/student/assessment/assignments/cards";
+import ExamCards from "@/app/ui/student/assessment/exams/cards";
+import AssignmentTable from "@/app/ui/student/assessment/assignments/assignment-table";
+import ExamTable from "@/app/ui/student/assessment/exams/exam-table";
 import {
   fetchAssessmentRows,
   fetchStudentClassById,
@@ -22,13 +22,20 @@ export default async function AssessmentList({
   if (!studentId) notFound();
 
   const studentClass = await fetchStudentClassById(studentId);
-  const { tableData, total, totalInProgress, upcoming, completed, totalDued, avgScore } =
-    await fetchAssessmentRows(
-      type,
-      studentClass.grade_level,
-      studentClass.class_id,
-      studentId,
-    );
+  const {
+    tableData,
+    total,
+    totalInProgress,
+    upcoming,
+    completed,
+    totalDued,
+    avgScore,
+  } = await fetchAssessmentRows(
+    type,
+    studentClass.grade_level,
+    studentClass.class_id,
+    studentId,
+  );
 
   return (
     <main>
