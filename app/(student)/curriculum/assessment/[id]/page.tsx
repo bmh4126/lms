@@ -4,8 +4,10 @@ import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import {
   fetchAssessmentAttempt,
-  fetchQuestionsById,
+  fetchQuestionsForReviewById,
   fetchAnswersAndScoreForReview,
+  fetchQuestionsForDoById,
+  fetchStudentAnswers,
 } from "@/app/lib/data/student/data";
 import {
   deriveAssessmentMode,
@@ -13,6 +15,7 @@ import {
   formatDateToTime,
 } from "@/app/lib/utils";
 import QuestionsWrapper from "@/app/ui/student/practice/questions";
+import AssessmentRunner from "@/app/ui/student/practice/assessment-runner";
 import { ReviewScore } from "@/app/ui/student/practice/score";
 
 export const metadata: Metadata = {
@@ -22,9 +25,7 @@ export const metadata: Metadata = {
 // One route for both doing and reviewing. The mode is derived from submission
 // state + timing (see deriveAssessmentMode) — never from the URL — so a student
 // can't force "review" to leak the answer key.
-export default async function Page(prop: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function Page(prop: { params: Promise<{ id: string }> }) {
   const { id } = await prop.params;
 
   const user = await auth();
@@ -61,19 +62,28 @@ export default async function Page(prop: {
     );
   }
 
-  // Interactive attempt. Correct answers must NOT be fetched here.
+  // Interactive attempt. Correct answers must NOT be fetched here — the do query
+  // omits is_correct. The client runner owns the selection state.
   if (mode === "do") {
+    // Reload any saved selections so an in-progress assignment can continue.
+    const [todo, initialAnswers] = await Promise.all([
+      fetchQuestionsForDoById(assessment.id),
+      fetchStudentAnswers(assessment.id, userId),
+    ]);
     return (
       <>
-        <Back href="/curriculum/assessment" />
-        {/* TODO: reusable question runner — fetch questions WITHOUT is_correct
-            and feed `policy` to toggle timer / single-attempt / leave-guard. */}
-        <p className="mt-4">
-          Do {assessment.type}: {assessment.name}
-        </p>
-        <pre className="mt-2 text-xs text-gray-500">
-          {JSON.stringify(policy, null, 2)}
-        </pre>
+        <div className="relative mb-4 flex items-center">
+          {!policy.lockOnLeave && <Back href="/curriculum/assessment" />}
+          <p className="absolute left-1/2 max-w-[55%] -translate-x-1/2 truncate text-center text-lg font-bold text-gray-900 sm:text-2xl md:text-3xl">
+            {todo.name}
+          </p>
+        </div>
+        <AssessmentRunner
+          assessment_id={assessment.id}
+          questions={todo.questions}
+          policy={policy}
+          initialAnswers={initialAnswers}
+        />
       </>
     );
   }
@@ -81,7 +91,7 @@ export default async function Page(prop: {
   // Review (submitted) OR missed (closed, never submitted). Both reveal the
   // correct answers so the student can learn. A missed attempt just has no
   // selections and a zero score.
-  const full = await fetchQuestionsById(id);
+  const full = await fetchQuestionsForReviewById(id);
   let answers: string[] = [];
   let score = 0;
   if (mode === "review") {

@@ -4,9 +4,19 @@ import { sql } from "../../db";
 import { revalidatePath } from "next/cache";
 import { State } from "../common-action";
 import { z } from "zod";
-import { localTimeToDate, safeCallback } from "../../utils";
+import {
+  localTimeToDate,
+  safeCallback,
+  passedTime,
+  getAssessmentPolicy,
+} from "../../utils";
 import { randomUUID } from "crypto";
 import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import {
+  fetchAnswersById,
+  fetchAssessmentAttempt,
+} from "../../data/student/data";
 
 const formSchema = z
   .object({
@@ -81,8 +91,17 @@ function parseAssessmentForm(formData: FormData):
       },
     };
   }
-  const { type, scope, grade_level, class_id, name, open, close, timezone, questions } =
-    validatedFields.data;
+  const {
+    type,
+    scope,
+    grade_level,
+    class_id,
+    name,
+    open,
+    close,
+    timezone,
+    questions,
+  } = validatedFields.data;
 
   // Wall-clock strings + offset → real UTC instants for the timestamptz columns.
   const openAt = localTimeToDate(open, timezone);
@@ -132,8 +151,16 @@ export async function createAssessment(
 ): Promise<State> {
   const parsed = parseAssessmentForm(formData);
   if (!parsed.ok) return parsed.state;
-  const { type, scope, grade_level, class_id, name, openAt, closeAt, questionList } =
-    parsed.data;
+  const {
+    type,
+    scope,
+    grade_level,
+    class_id,
+    name,
+    openAt,
+    closeAt,
+    questionList,
+  } = parsed.data;
 
   const assessment_id = randomUUID();
 
@@ -175,7 +202,9 @@ export async function createAssessment(
   }
 
   revalidate();
-  redirect(safeCallback(formData.get("callbackUrl") as string) ?? "/admin/assessment");
+  redirect(
+    safeCallback(formData.get("callbackUrl") as string) ?? "/admin/assessment",
+  );
 }
 
 export async function updateAssessment(
@@ -185,8 +214,16 @@ export async function updateAssessment(
 ): Promise<State> {
   const parsed = parseAssessmentForm(formData);
   if (!parsed.ok) return parsed.state;
-  const { type, scope, grade_level, class_id, name, openAt, closeAt, questionList } =
-    parsed.data;
+  const {
+    type,
+    scope,
+    grade_level,
+    class_id,
+    name,
+    openAt,
+    closeAt,
+    questionList,
+  } = parsed.data;
 
   try {
     await sql.begin(async (tx) => {
@@ -241,5 +278,82 @@ export async function updateAssessment(
   }
 
   revalidate();
-  redirect(safeCallback(formData.get("callbackUrl") as string) ?? "/admin/assessment");
+  redirect(
+    safeCallback(formData.get("callbackUrl") as string) ?? "/admin/assessment",
+  );
+}
+
+// The student id comes from the session — never the client — so a submission
+// can't be forged for another user.
+export async function submitAnswer(
+  assessment_id: string,
+  selection: Record<string, string>,
+): Promise<{ message: string } | void> {
+  const user = await auth();
+  const student_id = user?.user?.id;
+  if (!student_id) return { message: "You must be signed in to submit." };
+
+  // Guard the window server-side (the page mode is only a UX hint).
+  const assessment = await fetchAssessmentAttempt(assessment_id, student_id);
+  if (!assessment) return { message: "Assessment not found." };
+  if (!passedTime(assessment.open))
+    return { message: "This assessment isn't open yet." };
+  if (passedTime(assessment.close))
+    return { message: "This assessment has closed." };
+
+  const policy = getAssessmentPolicy(assessment.type);
+
+  // Single-attempt (exam): reject a re-submit early with a clear message. The
+  // unique constraint below is still the race-safe guarantee.
+  if (policy.singleAttempt && assessment.score !== null) {
+    return { message: "You've already submitted this exam." };
+  }
+
+  // Grade against the answer key on the server — the client never sees it.
+  const key = await fetchAnswersById(assessment_id);
+  const score = key.filter(
+    (k) => selection[k.questionId] === k.correctOptionId,
+  ).length;
+
+  try {
+    await sql.begin(async (tx) => {
+      const [row] = policy.singleAttempt
+        ? // Exam: one attempt. A duplicate hits the unique constraint (23505).
+          await tx<{ id: string }[]>`
+            INSERT INTO practice.submissions (id, user_id, assessment_id, score)
+            VALUES (${randomUUID()}, ${student_id}, ${assessment_id}, ${score})
+            RETURNING id
+          `
+        : // Assignment: allow re-submit — upsert on the unique key.
+          await tx<{ id: string }[]>`
+            INSERT INTO practice.submissions (id, user_id, assessment_id, score,submitted_at)
+            VALUES (${randomUUID()}, ${student_id}, ${assessment_id}, ${score}, DEFAULT)
+            ON CONFLICT (user_id, assessment_id)
+            DO UPDATE SET score = EXCLUDED.score
+            RETURNING id
+          `;
+
+      const submission_id = row.id;
+
+      // Replace this submission's answers.
+      await tx`DELETE FROM practice.submission_answer WHERE submission_id = ${submission_id}`;
+      for (const [questionId, optionId] of Object.entries(selection)) {
+        await tx`
+          INSERT INTO practice.submission_answer (submission_id, question_id, answer)
+          VALUES (${submission_id}, ${questionId}, ${optionId})
+        `;
+      }
+    });
+  } catch (e) {
+    if ((e as { code?: string }).code === "23505") {
+      alert("You've already submitted this assessment.");
+      redirect(`/assessment/${assessment.type}`)
+    }
+    console.log("Database error: ", e);
+    return { message: "Cannot submit this assessment. Please try again." };
+  }
+
+  revalidatePath(`/curriculum/assessment/${assessment_id}`);
+  revalidatePath(`/curriculum/assessment`);
+  redirect(`/curriculum/assessment/${assessment.type}`);
 }

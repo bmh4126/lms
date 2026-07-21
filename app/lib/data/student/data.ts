@@ -197,7 +197,7 @@ export async function fetchAssessmentRows(
       if (!passedTime(d.open)) return { ...d, status: "Before Open" };
       if (!passedTime(d.close)) {
         // Window open: submitted → "Submitted", otherwise still "In Progress".
-        return { ...d, status: d.score ? "Submitted" : "In Progress" };
+        return { ...d, status: d.score !== null ? "Submitted" : "In Progress" };
       }
       // Window closed: submitted → "Done" (score shown), otherwise "Dued".
       return { ...d, status: d.score ? "Done" : "Dued" };
@@ -206,7 +206,7 @@ export async function fetchAssessmentRows(
     const total = Number(data.length);
     const upcoming = Number(data.filter((d) => !passedTime(d.open)).length);
     const totalInProgress = Number(
-      data.filter((d) => passedTime(d.open) && !passedTime(d.close) && !d.score)
+      data.filter((d) => passedTime(d.open) && !passedTime(d.close))
         .length,
     );
     const completed = Number(data.filter((d) => d.score).length);
@@ -293,7 +293,96 @@ export async function fetchFilteredStudent(query: string, currentPage: number) {
   }
 }
 
-export async function fetchQuestionsById(assessment_id: string) {
+export async function fetchQuestionsForDoById(assessment_id: string) {
+  try {
+    type todoAssessment = { name: string; questions: Question[] };
+    const data = await sql<todoAssessment[]>`
+    SELECT
+      a.name,
+      COALESCE(
+        (
+          SELECT jsonb_agg(
+            jsonb_build_object(
+              'id', q.id,
+              'label', q.label,
+              'options', COALESCE(
+                (
+                  SELECT jsonb_agg(
+                    jsonb_build_object('id', o.id, 'label', o.label)
+                    ORDER BY o.order_index
+                  )
+                  FROM practice.question_options o
+                  WHERE o.question_id = q.id
+                ),
+                '[]'::jsonb
+              )
+            )
+            ORDER BY q.position
+          )
+          FROM practice.questions q
+          WHERE q.assessment_id = a.id
+        ),
+        '[]'::jsonb
+      ) AS questions
+    FROM practice.assessments a
+    WHERE a.id = ${assessment_id}
+    `;
+    return data[0];
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot fetch questions for such AssessmentId.");
+  }
+}
+
+// This student's saved selections for an assessment (questionId -> chosen
+// optionId), so the do page can reload an in-progress assignment to continue.
+// Empty object when there's no submission yet.
+export async function fetchStudentAnswers(
+  assessment_id: string,
+  student_id: string,
+): Promise<Record<string, string>> {
+  try {
+    const rows = await sql<{ questionId: string; answer: string }[]>`
+    SELECT sa.question_id AS "questionId", sa.answer
+    FROM practice.submissions s
+    JOIN practice.submission_answer sa ON sa.submission_id = s.id
+    WHERE s.assessment_id = ${assessment_id} AND s.user_id = ${student_id}
+    `;
+    return Object.fromEntries(rows.map((r) => [r.questionId, r.answer]));
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot fetch student answers.");
+  }
+}
+
+// The answer key for grading: one row per question with its correct option id
+// (null if none is marked). Flat and minimal — no options, labels, or is_correct
+// leak beyond what grading needs.
+export async function fetchAnswersById(assessment_id: string) {
+  try {
+    const data = await sql<
+      { questionId: string; correctOptionId: string | null }[]
+    >`
+    SELECT
+      q.id AS "questionId",
+      (
+        SELECT o.id
+        FROM practice.question_options o
+        WHERE o.question_id = q.id AND o.is_correct
+        LIMIT 1
+      ) AS "correctOptionId"
+    FROM practice.questions q
+    WHERE q.assessment_id = ${assessment_id}
+    ORDER BY q.position
+    `;
+    return data;
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot fetch answer key for such AssessmentId.");
+  }
+}
+
+export async function fetchQuestionsForReviewById(assessment_id: string) {
   try {
     type reviewAssessment = { name: string; questions: Question[] };
     const data = await sql<reviewAssessment[]>`
