@@ -208,6 +208,7 @@ export async function updateClass(
   formData: FormData,
 ): Promise<State> {
   // TODO: validate, update the class, and reconcile its enrollments.
+  const callbackUrl = formData.get("callbackUrl")?.toString() ?? '/manage/class';
   const data = parseClassFormData(formData);
   if (!data.ok) return data.state;
   const { label, grade_level, academic_year, students } = data.data;
@@ -244,7 +245,7 @@ export async function updateClass(
   revalidatePath("/manage/class");
   revalidatePath("/dashboard");
   revalidatePath("/curriculum");
-  redirect("/manage/class");
+  redirect(callbackUrl);
 }
 
 export async function deleteClass(id: string) {
