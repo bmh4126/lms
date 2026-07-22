@@ -2,7 +2,6 @@
 
 import { sql } from "../../db";
 import { revalidatePath } from "next/cache";
-import { State } from "../common-action";
 import { z } from "zod";
 import {
   localTimeToDate,
@@ -17,6 +16,19 @@ import {
   fetchAnswersById,
   fetchAssessmentAttempt,
 } from "../../data/student/data";
+
+type State = {
+  errors?: {
+    userId?: { errors: string[] };
+    name?: { errors: string[] };
+    email?: { errors: string[] };
+    password?: { errors: string[] };
+    grade?: { errors: string[] };
+    class?: { errors: string[] };
+    created_at?: { errors: string[] };
+  };
+  message?: string | null;
+};
 
 const formSchema = z
   .object({
@@ -346,8 +358,7 @@ export async function submitAnswer(
     });
   } catch (e) {
     if ((e as { code?: string }).code === "23505") {
-      alert("You've already submitted this assessment.");
-      redirect(`/assessment/${assessment.type}`)
+      return { message: "You've already submitted this exam." };
     }
     console.log("Database error: ", e);
     return { message: "Cannot submit this assessment. Please try again." };

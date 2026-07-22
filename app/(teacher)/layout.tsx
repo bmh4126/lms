@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import SideNav from "@/app/ui/sidenav";
 import { NavLink } from "@/app/lib/definition";
 import { auth } from "@/auth";
+import { Metadata } from "next";
 
 const links: NavLink[] = [
   {
@@ -10,16 +11,35 @@ const links: NavLink[] = [
     icon: "homeIcon",
   },
   {
+    name: "Manage",
+    href: "#",
+    icon: "pencilIcon",
+    options: [
+      {
+        name: "Class",
+        href: "/manage/class",
+      },
+      {
+        name: "Curriculum",
+        href: "/manage/curriculum",
+      },
+    ],
+  },
+  {
     name: "Analysis",
-    href: "/dashboard/analysis",
+    href: "/analysis",
     icon: "chartBarIcon",
   },
   {
     name: "Report",
-    href: "/dashboard/report",
+    href: "/report",
     icon: "newspaperIcon",
   },
 ];
+
+export const metadata: Metadata = {
+  title: { template: "%s | Teacher", default: "Teacher page" },
+};
 
 export default async function Layout({ children }: { children: ReactNode }) {
   const session = await auth();

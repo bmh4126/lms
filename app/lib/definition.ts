@@ -88,11 +88,42 @@ export type User = {
   grade?: number;
 };
 
+export type ClassRow = {
+  id: string;
+  label: string;
+  grade_level: number;
+  total_student: number;
+};
+
 export type Class = {
   id: string;
   label: string;
   grade_level: number;
-}
+};
+
+// A student result from the card_id search.
+export type StudentSearchResult = {
+  id: string;
+  name: string;
+  card_id: string;
+};
+
+// The teacher classifies each class member into one of these groups (stored as
+// `group` on the enrollment).
+export type StudentGroup = "struggling" | "mid" | "good" | "excellent";
+
+// A chosen class member = a searched student plus their group.
+export type ClassStudent = StudentSearchResult & { group: StudentGroup };
+
+// Prefill shape for the class edit form.
+export type ClassForm = {
+  id: string;
+  label: string;
+  grade_level: number;
+  students: ClassStudent[];
+  created_by: string;
+  academic_year_id: string;
+};
 
 export type StudentTable = {
   id: string;
@@ -149,7 +180,7 @@ export type Question = {
   label: string;
   options: Option[];
   correctOptionId?: string;
-}
+};
 
 // Everything the edit form needs to prefill: core fields + targeting + the
 // full question tree (options carry is_correct).
@@ -169,4 +200,11 @@ export type Option = {
   id: string;
   label: string;
   is_correct: boolean;
-}
+};
+
+export type Year = {
+  id: string;
+  label: string;
+  start: Date;
+  end: Date;
+};

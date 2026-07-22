@@ -11,22 +11,22 @@ const links: NavLink[] = [
   },
   {
     name: "Assessments",
-    href: "/curriculum/assessment",
+    href: "/assessment",
     icon: "pencilIcon",
     options: [
       {
         name: "Assignments",
-        href: "/curriculum/assessment/assignment",
+        href: "/assessment/assignment",
       },
       {
         name: "Exams",
-        href: "/curriculum/assessment/exam",
+        href: "/assessment/exam",
       },
     ],
   },
   {
     name: "Record",
-    href: "/curriculum/record",
+    href: "/record",
     icon: "chartBarIcon",
   },
 ];

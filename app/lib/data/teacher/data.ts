@@ -1,7 +1,7 @@
 "use server";
 
 import { sql } from "../../db";
-import { TeacherTable } from "../../definition";
+import { ClassForm, ClassRow, TeacherTable, Year } from "../../definition";
 import {
   LessonDetail,
   ChapterListItem,
@@ -9,8 +9,9 @@ import {
   LessonListItem,
 } from "../../definition";
 import z from "zod";
+import { StudentSearchResult } from "../../definition";
 
-export async function fetchCardData(class_id:string, subject_id:string) {
+export async function fetchCardData(class_id: string, subject_id: string) {
   const totalChapterPromise = await sql`
     SELECT chapter_count
     FROM curriculum.subjects
@@ -22,23 +23,152 @@ export async function fetchCardData(class_id:string, subject_id:string) {
     JOIN school.enrollments e ON e.class_id = c.id
     WHERE c.id = ${class_id}
   `;
-  const data = await Promise.all([totalChapterPromise,totalStudentPromise]);
+  const data = await Promise.all([totalChapterPromise, totalStudentPromise]);
   const totalChapters = Number(data[0][0].chapter_count ?? 0);
-  const totalStudents = Number(data[1][0].count ?? 0)
-  return { totalChapters,totalStudents };
+  const totalStudents = Number(data[1][0].count ?? 0);
+  return { totalChapters, totalStudents };
 }
 
-// export async function fetchClassByTeacherId(teacherId: string) {
-//   const data = await sql`
-//     SELECT
-//       g.position AS position,
-//       g.chapter_count AS chapter_count
-//     FROM allocation
-//     LEFT JOIN enrollment e ON e.grade = g.position
-//     WHERE e.user_id = ${userId}
-//   `;
-//   return data[0];
-// }
+const CLASSES_PER_PAGE = 6;
+
+export async function fetchFilteredClassesByTeacherId(
+  teacherId: string,
+  grade_level: string | null,
+  page: number,
+) {
+  try {
+    const offset = CLASSES_PER_PAGE * (page - 1);
+    const data = await sql<ClassRow[]>`
+    SELECT
+      id,
+      label,
+      grade_level,
+      total_student
+    FROM school.classes
+    WHERE created_by = ${teacherId} AND
+      (${grade_level}::smallint IS NULL OR
+      grade_level = ${grade_level}::smallint)
+    ORDER BY grade_level ASC
+    LIMIT ${CLASSES_PER_PAGE} OFFSET ${offset}
+  `;
+    return data;
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot fetch filtered classes with this TeacherID.");
+  }
+}
+
+export async function fetchClassesPage(
+  teacherId: string,
+  grade_level: string | null,
+) {
+  try {
+    const data = await sql`
+  SELECT COUNT(*)
+  FROM school.classes
+  WHERE created_by = ${teacherId} AND
+     (${grade_level}::smallint IS NULL OR
+      grade_level = ${grade_level}::smallint)
+  `;
+    const totalPages = Math.ceil(
+      Number(data[0].count ?? "0") / CLASSES_PER_PAGE,
+    );
+    return totalPages;
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot fetch total classes page with this TeacherID.");
+  }
+}
+
+export async function fetchAllGrades(id?: string) {
+  try {
+    if (!id) {
+      const data = await sql`
+    SELECT position FROM school.grade_levels ORDER BY position
+    `;
+      return data.map((g) => g.position);
+    } else {
+      const data = await sql`
+      SELECT grade_level FROM school.classes WHERE created_by = ${id}
+      `;
+      return Array.from(new Set(data.map((d)=>d.grade_level)));
+    }
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error(
+      `Cannot fetch all grades ${id ? "for this teacher ID" : ""}.`,
+    );
+  }
+}
+
+// Live search for the StudentPicker: up to 5 students whose card_id matches the
+// query, ordered by card_id. A read (not the write action), so it's built here.
+export async function searchStudentsByCardId(
+  query: string,
+): Promise<StudentSearchResult[]> {
+  const trimmed = query.trim();
+  try {
+    // Empty query -> "%%" matches everyone, so focusing shows the first 5.
+    return await sql<StudentSearchResult[]>`
+      SELECT id, name, card_id
+      FROM school.users
+      WHERE role = 'student' AND card_id ILIKE ${`%${trimmed}%`}
+      ORDER BY card_id ASC
+      LIMIT 5
+    `;
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot search students.");
+  }
+}
+
+export async function fetchAllAcademicYear() {
+  try {
+    const data = await sql<Year[]>`
+    SELECT
+      id,
+      label,
+      start,
+      "end"
+    FROM school.academic_year
+    WHERE "end" >= NOW()
+    `;
+    return data;
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot fetch all academic year.");
+  }
+}
+
+export async function fetchClassById(id: string): Promise<ClassForm> {
+  try {
+    const [row] = await sql<ClassForm[]>`
+      SELECT
+        c.id,
+        c.label,
+        c.grade_level,
+        c.academic_year_id,
+        COALESCE(
+          (
+            SELECT jsonb_agg(
+              jsonb_build_object('id', u.id, 'name', u.name, 'card_id', u.card_id, 'group', e.group)
+              ORDER BY u.card_id ASC
+            )
+            FROM school.users u
+            JOIN school.enrollments e ON e.student_id = u.id
+            WHERE e.class_id = c.id
+          ),
+          '[]'::jsonb
+        ) AS students
+      FROM school.classes c
+      WHERE c.id = ${id}
+    `;
+    return row ?? [];
+  } catch (e) {
+    console.log("Database error: ", e);
+    throw new Error("Cannot fetch class with such ID.");
+  }
+}
 
 export async function fetchChaptersByGrade(grade: number) {
   // Read-through cache for topic_count:

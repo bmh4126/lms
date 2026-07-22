@@ -9,10 +9,18 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       const role = auth?.user?.role as string;
-      const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
-      const isOnCurriculum = nextUrl.pathname.startsWith("/curriculum");
+      const isOnTeacher =
+        nextUrl.pathname.startsWith("/dashboard") ||
+        nextUrl.pathname.startsWith("/manage") ||
+        nextUrl.pathname.startsWith("/analysis") ||
+        nextUrl.pathname.startsWith("/report");
+      const isOnStudent =
+        nextUrl.pathname.startsWith("/curriculum") ||
+        nextUrl.pathname.startsWith("/assessment") ||
+        nextUrl.pathname.startsWith("/lesson") ||
+        nextUrl.pathname.startsWith("/record");
       const isOnAdmin = nextUrl.pathname.startsWith("/admin");
-      const isProtected = isOnCurriculum || isOnDashboard || isOnAdmin;
+      const isProtected = isOnStudent || isOnTeacher || isOnAdmin;
       const home: Record<string, string> = {
         student: "/curriculum",
         teacher: "/dashboard",
@@ -21,8 +29,8 @@ export const authConfig = {
 
       if (!isLoggedIn) return isProtected ? false : true;
       if (
-        (role === "student" && !isOnCurriculum) ||
-        (role === "teacher" && !isOnDashboard) ||
+        (role === "student" && !isOnStudent) ||
+        (role === "teacher" && !isOnTeacher) ||
         (role == "admin" && !isOnAdmin) ||
         !isProtected
       )
@@ -31,8 +39,7 @@ export const authConfig = {
     },
     // Persist custom fields on the token at sign-in (`user` is only set then)...
     async jwt({ token, user }) {
-      if (user)
-        token.role = user.role;
+      if (user) token.role = user.role;
       return token;
     },
     // ...and expose them on the session so `auth.user.role` is available here

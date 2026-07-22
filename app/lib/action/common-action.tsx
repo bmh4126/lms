@@ -4,19 +4,6 @@ import { sql } from "../db";
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
 
-export type State = {
-  errors?: {
-    userId?: { errors: string[] };
-    name?: { errors: string[] };
-    email?: { errors: string[] };
-    password?: { errors: string[] };
-    grade?: { errors: string[] };
-    class?: { errors: string[] };
-    created_at?: { errors: string[] };
-  };
-  message?: string | null;
-};
-
 export async function authenticate(
   prevState: string | undefined,
   formData: FormData,
